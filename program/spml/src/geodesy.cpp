@@ -483,6 +483,7 @@ XYZ GEOtoECEF( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, 
     return XYZ( x, y, z );
 }
 //----------------------------------------------------------------------------------------------------------------------
+/*
 void ECEFtoGEO( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
     double x, double y, double z, double &lat, double &lon, double &h )
 {
@@ -501,7 +502,7 @@ void ECEFtoGEO( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit,
     double es = ellipsoid.EccentricityFirstSquared();   // Eccentricity squared : (a^2 - b^2)/a^2
     double ses = ellipsoid.EccentricitySecondSquared(); // Second eccentricity squared : (a^2 - b^2)/b^2
 
-    bool At_Pole = false; // indicates whether location is in polar region */
+    bool At_Pole = false; // indicates whether location is in polar region
 
     double _x = x; // [м]
     double _y = y; // [м]
@@ -583,6 +584,109 @@ void ECEFtoGEO( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit,
     h = _h;     // [м]
 
     // LLH сейчас в радианах и метрах соответственно
+
+    // Проверим, нужен ли перевод:
+    switch( angleUnit ) {
+        case( Units::TAngleUnit::AU_Radian ): break; // Уже переведено
+        case( Units::TAngleUnit::AU_Degree ):
+        {
+            lat *= Convert::RdToDgD;
+            lon *= Convert::RdToDgD;
+            break;
+        }
+        default:
+            assert( false );
+    }
+    switch( rangeUnit ) {
+        case( Units::TRangeUnit::RU_Meter ): break; // Уже переведено
+        case( Units::TRangeUnit::RU_Kilometer ):
+        {
+            h /= 1000.0;
+            break;
+        }
+        default:
+            assert( false );
+    }
+}
+*/
+void ECEFtoGEO( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
+    double x, double y, double z, double &lat, double &lon, double &h )
+{
+    // Olsen method
+
+    // Параметры эллипсоида:
+    double _a = ellipsoid.A();
+    double _es = ellipsoid.EccentricityFirstSquared();   // Eccentricity squared : (a^2 - b^2)/a^2
+
+    const double _a1 = _a * _es; //4.2697672707157535e+4;  //
+    const double _a2 = _a1 * _a1; // 1.8230912546075455e+9;  //
+    const double _a3 = _a1 * _es / 2.0; //1.4291722289812413e+2;  //
+    const double _a4 = 2.5 * _a2; //4.5577281365188637e+9;  //
+    const double _a5 = _a1 + _a3; //4.2840589930055659e+4;  //
+    const double _a6 = 1.0 - _es; //9.9330562000986220e-1;  //
+
+    double _x = x;
+    double _y = y;
+    double _z = z;
+
+    // При необходимости переведем в Метры:
+    switch( rangeUnit ) {
+        case( Units::TRangeUnit::RU_Meter ): break; // Уже переведено
+        case( Units::TRangeUnit::RU_Kilometer):
+        {
+            _x *= 1000.0;
+            _y *= 1000.0;
+            _z *= 1000.0;
+            break;
+        }
+        default:
+            assert( false );
+    }
+    // Далее в математике используются углы в радианах и дальность в метрах, перевод в нужные единицы у конце
+
+    double _lon = 0;
+    double _lat = 0;
+    double _h = 0;
+    double _zp = std::abs( _z );
+    double _w2 = _x * _x + _y + _y;
+    double _w = std::sqrt( _w2 );
+    double _r2 = _w2 + _z * _z;
+    double _r = std::sqrt( _r2 );
+    _lon = std::atan2( _y, _x );
+    double _s2 = _z * _z / _r2;
+    double _c2 = _w2 / _r2;
+    double _u = _a2 / _r;
+    double _v = _a3 - _a4 / _r;
+    double _s = 0.0;
+    double _ss = 0.0;
+    double _c = 0.0;
+    if( _c2 > 0.3 ) {
+        _s = ( _zp / _r ) * ( 1.0 + _c2 * ( _a1 + _u + _s2 * _v ) / _r );
+        _lat = std::asin( _s );//Lat
+        _ss = _s * _s;
+        _c = std::sqrt( 1.0 - _ss );
+    } else {
+        _c = ( _w / _r ) * ( 1.0 - _s2 * ( _a5 - _u - _c2 * _v ) / _r );
+        _lat = std::acos( _c );      //Lat
+        _ss = 1.0 - ( _c * _c );
+        _s = std::sqrt( _ss );
+    }
+    double _g = 1.0 - ( _es * _ss );
+    double _rg = _a / std::sqrt( _g );
+    double _rf = _a6 * _rg;
+    _u = _w - _rg * _c;
+    _v = _zp - _rf * _s;
+    double _f = _c * _u + _s * _v;
+    double _m = _c * _v - _s * _u;
+    double _p = _m / ( _rf / _g + _f );
+    _lat = _lat + _p;        //Lat
+    _h = _f + _m * _p / 2.0; //Altitude
+    if( _z < 0.0 ){
+        _lat *= -1.0;     //Lat
+    }
+    lat = _lat;
+    lon = _lon;
+    h = _h;
 
     // Проверим, нужен ли перевод:
     switch( angleUnit ) {
