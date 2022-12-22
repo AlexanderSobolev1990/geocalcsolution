@@ -6,7 +6,7 @@
 /// \author     Соболев А.А.
 ///
 
-#define BOOST_TEST_DYN_LINK
+//#define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MODULE test_spml_geodesy
 // Boost includes:
 #include <boost/test/unit_test.hpp>
@@ -19,11 +19,12 @@
 
 // SPML includes:
 #include <geodesy.h>
+//----------------------------------------------------------------------------------------------------------------------
 
-BOOST_AUTO_TEST_SUITE( test_spml_geodesy )
+BOOST_AUTO_TEST_SUITE( test_suite_GEOtoRAD )
 
-SPML::Units::TAngleUnit unitAngle = SPML::Units::TAngleUnit::AU_Degree;
-SPML::Units::TRangeUnit unitRange = SPML::Units::TRangeUnit::RU_Kilometer;
+const SPML::Units::TAngleUnit unitAngle = SPML::Units::TAngleUnit::AU_Degree;
+const SPML::Units::TRangeUnit unitRange = SPML::Units::TRangeUnit::RU_Kilometer;
 
 const SPML::Geodesy::CEllipsoid sphere_6371 = SPML::Geodesy::Ellipsoids::Sphere6371();
 const SPML::Geodesy::CEllipsoid el_WGS84 = SPML::Geodesy::Ellipsoids::WGS84();
@@ -285,3 +286,208 @@ BOOST_AUTO_TEST_CASE( test_GEOtoRAD_RADtoGEO_Sphere )
 }
 
 BOOST_AUTO_TEST_SUITE_END()
+//----------------------------------------------------------------------------------------------------------------------
+const SPML::Units::TAngleUnit unitAngle = SPML::Units::TAngleUnit::AU_Degree;
+const SPML::Units::TRangeUnit unitRange = SPML::Units::TRangeUnit::RU_Meter;
+const SPML::Geodesy::CEllipsoid el = SPML::Geodesy::Ellipsoids::WGS84();
+//----------------------------------------------------------------------------------------------------------------------
+BOOST_AUTO_TEST_SUITE( test_suite_GEOtoECEF )
+
+double lat = 57.02929569; // град
+double lon = 9.950248114; // град
+double h = 56.95; // м
+double x = 3426949.397; // м
+double y = 601195.852; // м
+double z = 5327723.994; // м
+
+const double eps = 1.0e-3;
+
+BOOST_AUTO_TEST_CASE( test_GEOtoECEF )
+{
+    double x_, y_, z_;
+    SPML::Geodesy::GEOtoECEF( el, unitRange, unitAngle, lat, lon, h, x_, y_, z_ );
+    BOOST_CHECK_CLOSE_FRACTION( x, x_, eps );
+    BOOST_CHECK_CLOSE_FRACTION( y, y_, eps );
+    BOOST_CHECK_CLOSE_FRACTION( z, z_, eps );
+}
+
+BOOST_AUTO_TEST_CASE( test_ECEFtoGEO )
+{
+    double lat_, lon_, h_;
+    SPML::Geodesy::ECEFtoGEO( el, unitRange, unitAngle, x, y, z, lat_, lon_, h_ );
+    BOOST_CHECK_CLOSE_FRACTION( lat, lat_, eps );
+    BOOST_CHECK_CLOSE_FRACTION( lon, lon_, eps );
+    BOOST_CHECK_CLOSE_FRACTION( h, h_, eps );
+}
+
+BOOST_AUTO_TEST_SUITE_END()
+//----------------------------------------------------------------------------------------------------------------------
+BOOST_AUTO_TEST_SUITE( test_suite_GEOtoENU )
+
+double lat = 42.002582; // град
+double lon = -81.997752; // град
+double h = 1139.7; // м
+double lat0 = 42.0; // град
+double lon0 = -82.0; // град
+double h0 = 200.0; // м
+double e = 186.28; // м
+double n = 286.84; // м
+double u = 939.69; // м
+
+const double eps = 1.0e-3;
+
+BOOST_AUTO_TEST_CASE( test_GEOtoENU )
+{
+    double e_, n_, u_;
+    SPML::Geodesy::GEOtoENU( el, unitRange, unitAngle, lat, lon, h, lat0, lon0, h0, e_, n_, u_ );
+    BOOST_CHECK_CLOSE_FRACTION( e, e_, eps );
+    BOOST_CHECK_CLOSE_FRACTION( n, n_, eps );
+    BOOST_CHECK_CLOSE_FRACTION( u, u_, eps );
+}
+
+BOOST_AUTO_TEST_CASE( test_ENUtoGEO )
+{
+    double lat_, lon_, h_;
+    SPML::Geodesy::ENUtoGEO( el, unitRange, unitAngle, e, n, u, lat0, lon0, h0, lat_, lon_, h_ );
+    BOOST_CHECK_CLOSE_FRACTION( lat, lat_, eps );
+    BOOST_CHECK_CLOSE_FRACTION( lon, lon_, eps );
+    BOOST_CHECK_CLOSE_FRACTION( h, h_, eps );
+}
+
+BOOST_AUTO_TEST_SUITE_END()
+//----------------------------------------------------------------------------------------------------------------------
+BOOST_AUTO_TEST_SUITE( test_suite_GEOtoAER )
+
+double lat = 42.002582; // град
+double lon = -81.997752; // град
+double h = 1139.7; // м
+double lat0 = 42.0; // град
+double lon0 = -82.0; // град
+double h0 = 200.0; // м
+double a = 33.0; // м
+double e = 70.0; // м
+double r = 1000.0; // м
+
+const double eps = 1.0e-3;
+
+BOOST_AUTO_TEST_CASE( test_GEOtoAER )
+{
+    double a_, e_, r_;
+    SPML::Geodesy::GEOtoAER( el, unitRange, unitAngle, lat, lon, h, lat0, lon0, h0, a_, e_, r_ );
+    BOOST_CHECK_CLOSE_FRACTION( a, a_, eps );
+    BOOST_CHECK_CLOSE_FRACTION( e, e_, eps );
+    BOOST_CHECK_CLOSE_FRACTION( r, r_, eps );
+}
+
+BOOST_AUTO_TEST_CASE( test_AERtoGEO )
+{
+    double lat_, lon_, h_;
+    SPML::Geodesy::AERtoGEO( el, unitRange, unitAngle, a, e, r, lat0, lon0, h0, lat_, lon_, h_ );
+    BOOST_CHECK_CLOSE_FRACTION( lat, lat_, eps );
+    BOOST_CHECK_CLOSE_FRACTION( lon, lon_, eps );
+    BOOST_CHECK_CLOSE_FRACTION( h, h_, eps );
+}
+
+BOOST_AUTO_TEST_SUITE_END()
+//----------------------------------------------------------------------------------------------------------------------
+BOOST_AUTO_TEST_SUITE( test_suite_ECEFtoENU )
+
+double x = 660930.192761082;
+double y = -4701424.222957011;
+double z = 4246579.604632881;
+double lat0 = 42.0; // град
+double lon0 = -82.0; // град
+double h0 = 200.0; // м
+double e = 186.27752; // м
+double n = 286.84222; // м
+double u = 939.69262; // м
+
+double eps = 1.0e-5;
+
+BOOST_AUTO_TEST_CASE( test_ECEFtoENU )
+{
+    double e_, n_, u_;
+    SPML::Geodesy::ECEFtoENU( el, unitRange, unitAngle, x, y, z, lat0, lon0, h0, e_, n_, u_ );
+    BOOST_CHECK_CLOSE_FRACTION( e, e_, eps );
+    BOOST_CHECK_CLOSE_FRACTION( n, n_, eps );
+    BOOST_CHECK_CLOSE_FRACTION( u, u_, eps );
+}
+
+BOOST_AUTO_TEST_CASE( test_ENUtoECEF )
+{
+    double x_, y_, z_;
+    SPML::Geodesy::ENUtoECEF( el, unitRange, unitAngle, e, n, u, lat0, lon0, h0, x_, y_, z_ );
+    BOOST_CHECK_CLOSE_FRACTION( x, x_, eps );
+    BOOST_CHECK_CLOSE_FRACTION( y, y_, eps );
+    BOOST_CHECK_CLOSE_FRACTION( z, z_, eps );
+}
+
+BOOST_AUTO_TEST_SUITE_END()
+//----------------------------------------------------------------------------------------------------------------------
+BOOST_AUTO_TEST_SUITE( test_suite_ECEFtoAER )
+
+double x = 660930.192761082;
+double y = -4701424.222957011;
+double z = 4246579.604632881;
+double lat0 = 42.0; // град
+double lon0 = -82.0; // град
+double h0 = 200.0; // м
+double a = 33.0; // м
+double e = 70.0; // м
+double r = 1000.0; // м
+
+double eps = 1.0e-5;
+
+BOOST_AUTO_TEST_CASE( test_ECEFtoAER )
+{
+    double a_, e_, r_;
+    SPML::Geodesy::ECEFtoAER( el, unitRange, unitAngle, x, y, z, lat0, lon0, h0, a_, e_, r_ );
+    BOOST_CHECK_CLOSE_FRACTION( a, a_, eps );
+    BOOST_CHECK_CLOSE_FRACTION( e, e_, eps );
+    BOOST_CHECK_CLOSE_FRACTION( r, r_, eps );
+}
+
+BOOST_AUTO_TEST_CASE( test_AERtoECEF )
+{
+    double x_, y_, z_;
+    SPML::Geodesy::AERtoECEF( el, unitRange, unitAngle, a, e, r, lat0, lon0, h0, x_, y_, z_ );
+    BOOST_CHECK_CLOSE_FRACTION( x, x_, eps );
+    BOOST_CHECK_CLOSE_FRACTION( y, y_, eps );
+    BOOST_CHECK_CLOSE_FRACTION( z, z_, eps );
+}
+
+BOOST_AUTO_TEST_SUITE_END()
+//----------------------------------------------------------------------------------------------------------------------
+BOOST_AUTO_TEST_SUITE( test_suite_ENUtoAER )
+
+double e = 186.27752; // м
+double n = 286.84222; // м
+double u = 939.69262; // м
+double a1 = 33.0; // м
+double e1 = 70.0; // м
+double r1 = 1000.0; // м
+
+double eps = 1.0e-5;
+
+BOOST_AUTO_TEST_CASE( test_ENUtoAER )
+{
+    double a_, e_, r_;
+    SPML::Geodesy::ENUtoAER( unitRange, unitAngle, e, n, u, a_, e_, r_ );
+    BOOST_CHECK_CLOSE_FRACTION( a1, a_, eps );
+    BOOST_CHECK_CLOSE_FRACTION( e1, e_, eps );
+    BOOST_CHECK_CLOSE_FRACTION( r1, r_, eps );
+}
+
+BOOST_AUTO_TEST_CASE( test_AERtoENU )
+{
+    double e_, n_, u_;
+    SPML::Geodesy::AERtoENU( unitRange, unitAngle, a1, e1, r1, e_, n_, u_ );
+    BOOST_CHECK_CLOSE_FRACTION( e, e_, eps );
+    BOOST_CHECK_CLOSE_FRACTION( n, n_, eps );
+    BOOST_CHECK_CLOSE_FRACTION( u, u_, eps );
+}
+
+BOOST_AUTO_TEST_SUITE_END()
+//----------------------------------------------------------------------------------------------------------------------
+
+

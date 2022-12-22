@@ -53,8 +53,10 @@ endif()
 # Настройки создания пакета при помощи CPack
 set(CPACK_GENERATOR "DEB")
 set(CPACK_DEB_COMPONENT_INSTALL ON)
+set(CPACK_PACKAGE_CONTACT "(C) Alexander Sobolev, 2022")
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "(C) Alexander Sobolev, 2022")
 
-#set(CPACK_DEBIAN_GEOCALC_PACKAGE_DEPENDS "libarmadillo-dev,liblapack-dev,libblas-dev,libboost-dev,libboost-test-dev")
+set(CPACK_DEBIAN_GEOCALC_PACKAGE_DEPENDS "libboost-dev,libboost-test-dev")
 set(CPACK_COMPONENT_GEOCALC_DESCRIPTION "Geodetic Calculator")
 
 set(CPACK_PACKAGE_VERSION_MAJOR 22) # Год
