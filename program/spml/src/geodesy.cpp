@@ -488,6 +488,8 @@ XYZ GEOtoECEF( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, 
 void ECEFtoGEO( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
     double x, double y, double z, double &lat, double &lon, double &h )
 {
+    // An Improved Algorithm for Geocentric to Geodetic Coordinate Conversion, Ralph Toms, Feb 1996. UCRL-JC-123138
+
     static const double AD_C = 1.0026000;   // Toms region 1 constant. ( h_min = -1e5 [m], h_max = 2e6 [m] ) - MOST CASES!
 //    static const double AD_C = 1.00092592;  // Toms region 2 constant. ( h_min = 2e6 [m], h_max = 6e6 [m] )
 //    static const double AD_C = 0.999250297; // Toms region 3 constant. ( h_min = 6e6 [m], h_max = 18e6 [m] )
@@ -614,29 +616,27 @@ void ECEFtoGEO( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit,
 void ECEFtoGEO( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
     double x, double y, double z, double &lat, double &lon, double &h )
 {
-    // Olsen method
+    // Olson, D. K. (1996). Converting Earth-Centered, Earth-Fixed Coordinates to Geodetic Coordinates. IEEE Transactions on Aerospace and Electronic Systems, 32(1), 473–476. https://doi.org/10.1109/7.481290
 
     // Параметры эллипсоида:
     double _a = ellipsoid.A();
     double _es = ellipsoid.EccentricityFirstSquared();   // Eccentricity squared : (a^2 - b^2)/a^2
-    const double _a1 = _a * _es; //4.2697672707157535e+4;  //
-    const double _a2 = _a1 * _a1; // 1.8230912546075455e+9;  //
-    const double _a3 = _a1 * _es / 2.0; //1.4291722289812413e+2;  //
-    const double _a4 = 2.5 * _a2; //4.5577281365188637e+9;  //
-    const double _a5 = _a1 + _a3; //4.2840589930055659e+4;  //
-    const double _a6 = 1.0 - _es; //9.9330562000986220e-1;  //
-//    double _a = 6378137.0; // wgs-84
-////    double _es = 6.6943799901377997e-3;
-//    double _fl = ellipsoid.F();
-//    double _es = _fl * ( 2.0 - _fl );
+    const double _a1 = _a * _es;
+    const double _a2 = _a1 * _a1;
+    const double _a3 = _a1 * _es / 2.0;
+    const double _a4 = 2.5 * _a2;
+    const double _a5 = _a1 + _a3;
+    const double _a6 = 1.0 - _es;
+
+    // wgs-84
+//    double _a = 6378137.0;
+//    double _es = 6.6943799901377997e-3;
 //    double _a1 = 4.2697672707157535e+4;
 //    double _a2 = 1.8230912546075455e+9;
 //    double _a3 = 1.4291722289812413e+2;
 //    double _a4 = 4.5577281365188637e+9;
 //    double _a5 = 4.2840589930055659e+4;
 //    double _a6 = 9.9330562000986220e-1;
-    // a1 = a*e2, a2 = a1*a1, a3 = a1*e2/2,
-    // a4 = (5/2)*a2, a5 = a1 + a3, a6 = 1 - e2
 
     double _x = x;
     double _y = y;

@@ -549,9 +549,7 @@ XYZ GEOtoECEF( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, 
 /// \details    Декартовые геоцентрические координаты (ECEF):
 ///             ось X - через пересечение гринвичского меридиана и экватора,
 ///             ось Y - через пересечение меридиана 90 [град] восточной долготы и экватора,
-///             ось Z - через северный полюс.
-///             Источник - An Improved Algorithm for Geocentric to Geodetic Coordinate Conversion, Ralph Toms, Feb 1996.
-///             UCRL-JC-123138
+///             ось Z - через северный полюс
 /// \param[in]  ellipsoid - земной эллипсоид
 /// \param[in]  rangeUnit - единицы измерения дальности
 /// \param[in]  angleUnit - единицы измерения углов
@@ -570,9 +568,7 @@ void ECEFtoGEO( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit,
 /// \details    Декартовые геоцентрические координаты (ECEF):
 ///             ось X - через пересечение гринвичского меридиана и экватора,
 ///             ось Y - через пересечение меридиана 90 [град] восточной долготы и экватора,
-///             ось Z - через северный полюс.
-///             Источник - An Improved Algorithm for Geocentric to Geodetic Coordinate Conversion, Ralph Toms, Feb 1996.
-///             UCRL-JC-123138
+///             ось Z - через северный полюс
 /// \param[in]  ellipsoid - земной эллипсоид
 /// \param[in]  rangeUnit - единицы измерения дальности
 /// \param[in]  angleUnit - единицы измерения углов
