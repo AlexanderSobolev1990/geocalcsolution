@@ -314,7 +314,10 @@ BOOST_AUTO_TEST_CASE( test_GEOtoECEF )
 BOOST_AUTO_TEST_CASE( test_ECEFtoGEO )
 {
     double lat_, lon_, h_;
-    SPML::Geodesy::ECEFtoGEO( el, unitRange, unitAngle, x, y, z, lat_, lon_, h_ );
+//    SPML::Geodesy::ECEFtoGEO( el, unitRange, unitAngle, x, y, z, lat_, lon_, h_ );
+
+    SPML::Geodesy::latlon( x, y, z, &lat_, &lon_, &h_ );
+
     BOOST_CHECK_CLOSE_FRACTION( lat, lat_, eps );
     BOOST_CHECK_CLOSE_FRACTION( lon, lon_, eps );
     BOOST_CHECK_CLOSE_FRACTION( h, h_, eps );

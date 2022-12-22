@@ -143,33 +143,14 @@ namespace Ellipsoids /// Земные эллипсоиды
 //
 //                                              Земные эллипсоиды:
 //
-//  1) Сфера радиусом 6371000.0 [м], https://epsg.io/7035-ellipsoid
-//  2) Сфера радиусом 6378000.0 [м]
-//  3) Эллипсоид WGS84, https://epsg.io/7030-ellipsoid
-//  4) Эллипсоид GRS80, https://epsg.io/7019-ellipsoid
-//  5) Эллипсоид ПЗ-90, https://epsg.io/7054-ellipsoid
-//  6) Эллипсоид Крассовского, https://epsg.io/7024-ellipsoid
+//  1) Эллипсоид WGS84, https://epsg.io/7030-ellipsoid
+//  2) Эллипсоид GRS80, https://epsg.io/7019-ellipsoid
+//  3) Эллипсоид ПЗ-90, https://epsg.io/7054-ellipsoid
+//  4) Эллипсоид Красовского, https://epsg.io/7024-ellipsoid
+//  5) Сфера радиусом 6371000.0 [м], https://epsg.io/7035-ellipsoid
+//  6) Сфера радиусом 6378000.0 [м]
 //  7) Сфера радиусом большой полуоси эллипсоида Красовского 1940 (6378245.0 [м])
 //
-
-///
-/// \brief Сфера радиусом 6371000.0 [м] (EPSG:7035)
-/// \details Обратное сжатие - бесконечность
-///
-static CEllipsoid Sphere6371()
-{
-    return CEllipsoid( "Sphere 6371000.0 [м] (EPSG:7035)", 6371000.0, 6371000.0, 0.0, false );
-}
-
-///
-/// \brief Сфера радиусом 6378000.0 [м]
-/// \details Обратное сжатие - бесконечность
-///
-
-static CEllipsoid Sphere6378()
-{
-    return CEllipsoid( "Sphere 6378000.0 [м]", 6378000.0, 6378000.0, 0.0, false );
-}
 
 ///
 /// \brief Эллипсоид WGS84 (EPSG:7030)
@@ -205,6 +186,26 @@ static CEllipsoid PZ90()
 static CEllipsoid Krassowsky1940()
 {
     return CEllipsoid( "Krasovsky1940 (EPSG:7024)", 6378245.0, 0.0, 298.3, true );
+}
+
+
+///
+/// \brief Сфера радиусом 6371000.0 [м] (EPSG:7035)
+/// \details Обратное сжатие - бесконечность
+///
+static CEllipsoid Sphere6371()
+{
+    return CEllipsoid( "Sphere 6371000.0 [м] (EPSG:7035)", 6371000.0, 6371000.0, 0.0, false );
+}
+
+///
+/// \brief Сфера радиусом 6378000.0 [м]
+/// \details Обратное сжатие - бесконечность
+///
+
+static CEllipsoid Sphere6378()
+{
+    return CEllipsoid( "Sphere 6378000.0 [м]", 6378000.0, 6378000.0, 0.0, false );
 }
 
 ///
@@ -563,6 +564,8 @@ XYZ GEOtoECEF( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, 
 ///
 void ECEFtoGEO( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
     double x, double y, double z, double &lat, double &lon, double &h );
+
+void latlon(double x, double y, double z, double *lat, double *lon, double *ht);
 
 ///
 /// \brief Пересчет декартовых геоцентрических координат в широту, долготу, высоту

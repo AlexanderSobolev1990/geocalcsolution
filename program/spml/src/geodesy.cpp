@@ -609,21 +609,33 @@ void ECEFtoGEO( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit,
     }
 }
 */
+
 void ECEFtoGEO( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
     double x, double y, double z, double &lat, double &lon, double &h )
 {
     // Olsen method
 
     // Параметры эллипсоида:
-    double _a = ellipsoid.A();
-    double _es = ellipsoid.EccentricityFirstSquared();   // Eccentricity squared : (a^2 - b^2)/a^2
-
-    const double _a1 = _a * _es; //4.2697672707157535e+4;  //
-    const double _a2 = _a1 * _a1; // 1.8230912546075455e+9;  //
-    const double _a3 = _a1 * _es / 2.0; //1.4291722289812413e+2;  //
-    const double _a4 = 2.5 * _a2; //4.5577281365188637e+9;  //
-    const double _a5 = _a1 + _a3; //4.2840589930055659e+4;  //
-    const double _a6 = 1.0 - _es; //9.9330562000986220e-1;  //
+//    double _a = ellipsoid.A();
+//    double _es = ellipsoid.EccentricityFirstSquared();   // Eccentricity squared : (a^2 - b^2)/a^2
+//    const double _a1 = _a * _es; //4.2697672707157535e+4;  //
+//    const double _a2 = _a1 * _a1; // 1.8230912546075455e+9;  //
+//    const double _a3 = _a1 * _es / 2.0; //1.4291722289812413e+2;  //
+//    const double _a4 = (5.0 / 2.0) * _a2; //4.5577281365188637e+9;  //
+//    const double _a5 = _a1 + _a3; //4.2840589930055659e+4;  //
+//    const double _a6 = 1.0 - _es; //9.9330562000986220e-1;  //
+    double _a = 6378137.0; // wgs-84
+//    double _es = 6.6943799901377997e-3;
+    double _fl = ellipsoid.F();
+    double _es = _fl * ( 2.0 - _fl );
+    double _a1 = 4.2697672707157535e+4;
+    double _a2 = 1.8230912546075455e+9;
+    double _a3 = 1.4291722289812413e+2;
+    double _a4 = 4.5577281365188637e+9;
+    double _a5 = 4.2840589930055659e+4;
+    double _a6 = 9.9330562000986220e-1;
+    // a1 = a*e2, a2 = a1*a1, a3 = a1*e2/2,
+    // a4 = (5/2)*a2, a5 = a1 + a3, a6 = 1 - e2
 
     double _x = x;
     double _y = y;
@@ -647,19 +659,26 @@ void ECEFtoGEO( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit,
     double _lon = 0;
     double _lat = 0;
     double _h = 0;
-    double _zp = std::abs( _z );
-    double _w2 = _x * _x + _y + _y;
-    double _w = std::sqrt( _w2 );
-    double _r2 = _w2 + _z * _z;
-    double _r = std::sqrt( _r2 );
+
+    double _zp, _w2, _w, _z2, _r2, _r, _s2, _c2, _s, _c, _ss, _g, _rg, _rf, _u, _v, _m, _f, _p, _rm;
+
+    _zp = std::abs( _z );
+    _w2 = _x * _x + _y + _y;
+    _w = std::sqrt( _w2 );
+    _z2 = _z * _z;
+    _r2 = _w2 + _z2;
+    _r = std::sqrt( _r2 );
+//    if( _r < 100000.0 ) {
+//        lat = 0.;
+//        lon = 0.;
+//        h = -1.e7;
+//        return;
+//    }
     _lon = std::atan2( _y, _x );
-    double _s2 = _z * _z / _r2;
-    double _c2 = _w2 / _r2;
-    double _u = _a2 / _r;
-    double _v = _a3 - _a4 / _r;
-    double _s = 0.0;
-    double _ss = 0.0;
-    double _c = 0.0;
+    _s2 = _z2 / _r2;
+    _c2 = _w2 / _r2;
+    _u = _a2 / _r;
+    _v = _a3 - _a4 / _r;
     if( _c2 > 0.3 ) {
         _s = ( _zp / _r ) * ( 1.0 + _c2 * ( _a1 + _u + _s2 * _v ) / _r );
         _lat = std::asin( _s );//Lat
@@ -671,18 +690,20 @@ void ECEFtoGEO( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit,
         _ss = 1.0 - ( _c * _c );
         _s = std::sqrt( _ss );
     }
-    double _g = 1.0 - ( _es * _ss );
-    double _rg = _a / std::sqrt( _g );
-    double _rf = _a6 * _rg;
+    _g = 1.0 - ( _es * _ss );
+    _rg = _a / std::sqrt( _g );
+//    _rm = ( 1.0 - _es ) * _rg / _g;
+    _rf = _a6 * _rg;
     _u = _w - _rg * _c;
     _v = _zp - _rf * _s;
-    double _f = _c * _u + _s * _v;
-    double _m = _c * _v - _s * _u;
-    double _p = _m / ( _rf / _g + _f );
-    _lat = _lat + _p;        //Lat
-    _h = _f + _m * _p / 2.0; //Altitude
+    _f = _c * _u + _s * _v;
+    _m = _c * _v - _s * _u;
+    _p = _m / ( _rf / _g + _f );
+//    _p = _m / ( _rm + _f );
+    _lat += _p;        //Lat
+    _h = _f + _m * _p / 2; //Altitude
     if( _z < 0.0 ){
-        _lat *= -1.0;     //Lat
+        _lat = -_lat;     //Lat
     }
     lat = _lat;
     lon = _lon;
@@ -710,6 +731,70 @@ void ECEFtoGEO( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit,
         default:
             assert( false );
     }
+}
+
+void latlon(double x, double y, double z, double *lat, double *lon, double *ht)
+{
+    double a = 6378137.0; //wgs-84
+    double e2 = 6.6943799901377997e-3;
+    double a1 = 4.2697672707157535e+4;
+    double a2 = 1.8230912546075455e+9;
+    double a3 = 1.4291722289812413e+2;
+    double a4 = 4.5577281365188637e+9;
+    double a5 = 4.2840589930055659e+4;
+    double a6 = 9.9330562000986220e-1;
+    // a1 = a*e2, a2 = a1*a1, a3 = a1*e2/2,
+    // a4 = (5/2)*a2, a5 = a1 + a3, a6 = 1 - e2
+    double zp,w2,w,z2,r2,r,s2,c2,s,c,ss;
+    double g,rg,rf,u,v,m,f,p;
+    zp = fabs(z);
+    w2 = x*x + y*y;
+    w = sqrt(w2);
+    z2 = z*z;
+    r2 = w2 + z2;
+    r = sqrt(r2);
+    if (r < 100000.)
+    {
+        *lat = 0.;
+        *lon = 0.;
+        *ht = -1.e7;
+        return;
+    }
+    *lon = atan2(y,x);
+    s2 = z2/r2;
+    c2 = w2/r2;
+    u = a2/r;
+    v = a3 - a4/r;
+    if (c2 > .3)
+    {
+        s = (zp/r)*(1. + c2*(a1 + u + s2*v)/r);
+        *lat = asin(s);
+        ss = s*s;
+        c = sqrt(1. - ss);
+    }
+    else
+    {
+        c = (w/r)*(1. - s2*(a5 - u - c2*v)/r);
+        *lat = acos(c);
+        ss = 1. - c*c;
+        s = sqrt(ss);
+    }
+    g = 1. - e2*ss;
+    rg = a/sqrt(g);
+    rf = a6*rg;
+    u = w - rg*c;
+    v = zp - rf*s;
+    f = c*u + s*v;
+    m = c*v - s*u;
+    p = m/(rf/g + f);
+    *lat = *lat + p;
+    *ht = f + m*p/2.;
+    if (z < 0.)
+        *lat = -*lat;
+
+    *lat *= SPML::Convert::RdToDgD;
+    *lon *= SPML::Convert::RdToDgD;
+    return;
 }
 
 Geodetic ECEFtoGEO( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
