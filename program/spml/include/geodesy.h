@@ -622,6 +622,7 @@ XYZ ECEF_offset( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit
 /// \param[in]  z         - ECEF координата Z
 /// \param[in]  lat       - широта опорной точки
 /// \param[in]  lon       - долгота опорной точки
+/// \param[in]  h         - высота опорной точки
 /// \param[out] xEast     - ENU координата X (East)
 /// \param[out] yNorth    - ENU координата Y (North)
 /// \param[out] zUp       - ENU координата X (Up)
@@ -643,7 +644,7 @@ ENU ECEFtoENU( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, 
     const XYZ &ecef, const Geodetic &point );
 //----------------------------------------------------------------------------------------------------------------------
 ///
-/// \brief Перевод ENU координат точки в ECEF относительно географических координат точки (lat, lon)
+/// \brief Перевод ENU координат точки в ECEF относительно географических координат опорной точки (lat, lon)
 /// \details https://gssc.esa.int/navipedia/index.php/Transformations_between_ECEF_and_ENU_coordinates
 /// \param[in]  ellipsoid - земной эллипсоид
 /// \param[in]  rangeUnit - единицы измерения дальности
@@ -651,8 +652,9 @@ ENU ECEFtoENU( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, 
 /// \param[in]  e         - East
 /// \param[in]  n         - North
 /// \param[in]  u         - Up
-/// \param[in]  lat       - широта точки
-/// \param[in]  lon       - долгота точки
+/// \param[in]  lat       - широта опорной точки
+/// \param[in]  lon       - долгота опорной точки
+/// \param[in]  h         - высота опорной точки
 /// \param[out] x         - ECEF координата X
 /// \param[out] y         - ECEF координата Y
 /// \param[out] z         - ECEF координата X
@@ -716,7 +718,7 @@ void AERtoENU( const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angl
 /// \brief Перевод ENU коордиат точки в AER координаты
 /// \param[in] rangeUnit  - единицы измерения дальности
 /// \param[in] angleUnit  - единицы измерения углов
-/// \param[in] point      - точка в координатах aer
+/// \param[in] aer        - точка в координатах aer
 /// \return Координаты ENU точки point
 ///
 ENU AERtoENU( const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit, const AER &aer );
