@@ -565,8 +565,6 @@ XYZ GEOtoECEF( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, 
 void ECEFtoGEO( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
     double x, double y, double z, double &lat, double &lon, double &h );
 
-void latlon(double x, double y, double z, double *lat, double *lon, double *ht);
-
 ///
 /// \brief Пересчет декартовых геоцентрических координат в широту, долготу, высоту
 /// \details    Декартовые геоцентрические координаты (ECEF):
