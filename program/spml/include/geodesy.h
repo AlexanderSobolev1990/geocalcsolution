@@ -158,7 +158,7 @@ namespace Ellipsoids /// Земные эллипсоиды
 ///
 static CEllipsoid Sphere6371()
 {
-    return CEllipsoid( "Сфера радиусом 6371000.0 [м] (EPSG:7035)", 6371000.0, 6371000.0, 0.0, false );
+    return CEllipsoid( "Sphere 6371000.0 [м] (EPSG:7035)", 6371000.0, 6371000.0, 0.0, false );
 }
 
 ///
@@ -168,7 +168,7 @@ static CEllipsoid Sphere6371()
 
 static CEllipsoid Sphere6378()
 {
-    return CEllipsoid( "Сфера радиусом 6378000.0 [м]", 6378000.0, 6378000.0, 0.0, false );
+    return CEllipsoid( "Sphere 6378000.0 [м]", 6378000.0, 6378000.0, 0.0, false );
 }
 
 ///
@@ -177,7 +177,7 @@ static CEllipsoid Sphere6378()
 ///
 static CEllipsoid WGS84()
 {
-    return CEllipsoid( "Эллипсоид WGS84 (EPSG:7030)", 6378137.0, 0.0, 298.257223563, true );
+    return CEllipsoid( "WGS84 (EPSG:7030)", 6378137.0, 0.0, 298.257223563, true );
 }
 
 ///
@@ -186,7 +186,7 @@ static CEllipsoid WGS84()
 ///
 static CEllipsoid GRS80()
 {
-    return CEllipsoid( "Эллипсоид GRS80 (EPSG:7019)", 6378137.0, 0.0, 298.257222101, true );
+    return CEllipsoid( "GRS80 (EPSG:7019)", 6378137.0, 0.0, 298.257222101, true );
 }
 
 ///
@@ -195,7 +195,7 @@ static CEllipsoid GRS80()
 ///
 static CEllipsoid PZ90()
 {
-    return CEllipsoid( "Эллипсоид ПЗ-90 (EPSG:7054)", 6378136.0, 0.0, 298.257839303, true );
+    return CEllipsoid( "PZ90 (EPSG:7054)", 6378136.0, 0.0, 298.257839303, true );
 }
 
 ///
@@ -204,7 +204,7 @@ static CEllipsoid PZ90()
 ///
 static CEllipsoid Krassowsky1940()
 {
-    return CEllipsoid( "Эллипсоид Красовского 1940 (EPSG:7024)", 6378245.0, 0.0, 298.3, true );
+    return CEllipsoid( "Krasovsky1940 (EPSG:7024)", 6378245.0, 0.0, 298.3, true );
 }
 
 ///
@@ -213,7 +213,7 @@ static CEllipsoid Krassowsky1940()
 ///
 static CEllipsoid SphereKrassowsky1940()
 {
-    return CEllipsoid( "Сфера радиусом большой полуоси эллипсоида Красовского 1940 (EPSG:7024)", 6378245.0, 6378245.0, 0.0, false );
+    return CEllipsoid( "SphereRadiusKrasovsky1940 (EPSG:7024)", 6378245.0, 6378245.0, 0.0, false );
 }
 
 ///
@@ -223,13 +223,13 @@ static CEllipsoid SphereKrassowsky1940()
 [[maybe_unused]]
 static const __attribute__ ((unused)) std::vector<CEllipsoid> GetPredefinedEllipsoids()
 {
-    return std::vector<CEllipsoid>{
-        Sphere6371(),
-        Sphere6378(),
+    return std::vector<CEllipsoid>{        
         WGS84(),
         GRS80(),
         PZ90(),
         Krassowsky1940(),
+        Sphere6371(),
+        Sphere6378(),
         SphereKrassowsky1940()
     };
 }

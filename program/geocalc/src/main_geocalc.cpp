@@ -70,7 +70,7 @@ struct CCoordCalcSettings
 //        RangeUnitIn = SPML::Units::TRangeUnit::RU_Kilometer;
 //        AngleUnitOut = SPML::Units::TAngleUnit::AU_Degree;
 //        RangeUnitOut = SPML::Units::TRangeUnit::RU_Kilometer;
-        EllipsoidNumber = 2; // WGS84
+        EllipsoidNumber = 0;
         Input.clear();
     }
 };
@@ -94,14 +94,15 @@ int main( int argc, char *argv[] )
         "\n\nПараметры/Parameters", 220 ); // 220 - задает ширину строки вывода в терминал
 
     auto ellipsoids = SPML::Geodesy::Ellipsoids::GetPredefinedEllipsoids(); // Используемые эллипсоиды
-    std::string ellipsoidsString;
-    for( int i = 0; i < ellipsoids.size(); i++ ) {
-        ellipsoidsString += std::to_string( i ) + " : " + ( ellipsoids.at( i ) ).Name();// + "\n";
-        if( i != ellipsoids.size() - 1 ) {
-            ellipsoidsString += "\n";
-        }
-    }
-    std::string ellipsoidsStringAll = "Поумолчанию расчет на WGS84\n" + ellipsoidsString;
+//    std::string ellipsoidsString;
+//    for( int i = 0; i < ellipsoids.size(); i++ ) {
+////        ellipsoidsString += std::to_string( i ) + " : " + ( ellipsoids.at( i ) ).Name();// + "\n";
+//        ellipsoidsString += std::to_string( i ) + " : " + ( ellipsoids.at( i ) ).Name();// + "\n";
+//        if( i != ellipsoids.size() - 1 ) {
+//            ellipsoidsString += "\n";
+//        }
+//    }
+//    std::string ellipsoidsStringAll = "По умолчанию расчет на WGS84/ Default is WGS84\n" + ellipsoidsString;
 
     desc.add_options()
     // Справочные параметры:
@@ -114,42 +115,44 @@ int main( int argc, char *argv[] )
     ( "deg", "Вход в градусах (по умолчанию)/Input in degrees (default)" )
     ( "rad", "Вход в радианах/Input in radians" )
     ( "km", "Вход в километрах (по умолчанию)/Input in kilometers (default)" )
-    ( "meter", "Вход в метрах/Input in meters" )
+    ( "me", "Вход в метрах/Input in meters" )
     // Единицы выхода дальности/углов
 //    ( "outdeg", "Выход в градусах (по умолчанию)/Output in degrees (default)" )
 //    ( "outrad", "Выход в радианах/Output in radians" )
 //    ( "outkm", "Выход в километрах (по умолчанию)/Output in kilometers (default)" )
 //    ( "outmeter", "Выход в метрах/Output in meters" )
     // На каком эллипсоиде считать
-    ( "el", po::value<int>( &settings.EllipsoidNumber )->default_value( settings.EllipsoidNumber ),
-        ellipsoidsStringAll.c_str() )
+//    ( "el", po::value<int>( &settings.EllipsoidNumber )->default_value( settings.EllipsoidNumber ),
+//        ellipsoidsStringAll.c_str() )
+    ( "el", po::value<std::string>()->default_value( "wgs84" ), "Доступыне эллипсоиды/Avaliable ellipsoids: wgs84, grs80, pz90, krasovsky1940, sphere6371, sphere6378" )
+    ( "els", "Показать список доступных эллипсоидов и их параметры" )
     // Проверка
     ( "check", "Проверка решением обратной задачи/Check by solving inverse task" )    
     // Задачи:
     ( "geo2rad", po::value<std::vector<double>>( &settings.Input )->multitoken(),
-        "LatStart LonStart LatEnd LonEnd (Задавать без запятой через пробел/Input divided by space, not comma)" )
+        "args: LatStart LonStart LatEnd LonEnd" )
     ( "rad2geo", po::value<std::vector<double>>( &settings.Input )->multitoken(),
-        "LatStart LonStart Range Azimuth (Задавать без запятой через пробел/Input divided by space, not comma)" )
+        "args: LatStart LonStart Range Azimuth" )
     //
     ( "geo2ecef", po::value<std::vector<double>>( &settings.Input )->multitoken(),
-        "Lat Lon Height (Задавать без запятой через пробел/Input divided by space, not comma)" )
+        "args: Lat Lon Height" )
     ( "ecef2geo", po::value<std::vector<double>>( &settings.Input )->multitoken(),
-        "X Y Z (Задавать без запятой через пробел/Input divided by space, not comma)" )
+        "args: X Y Z" )
     //
     ( "ecefdist", po::value<std::vector<double>>( &settings.Input )->multitoken(),
-        "X1 Y1 Z1 X2 Y2 Z2 (Задавать без запятой через пробел/Input divided by space, not comma)" )
+        "args: X1 Y1 Z1 X2 Y2 Z2" )
     ( "ecefoffset", po::value<std::vector<double>>( &settings.Input )->multitoken(),
-        "X1 Y1 Z1 X2 Y2 Z2 (Задавать без запятой через пробел/Input divided by space, not comma)" )
+        "args: X1 Y1 Z1 X2 Y2 Z2" )
     //
     ( "ecef2enu", po::value<std::vector<double>>( &settings.Input )->multitoken(),
-        "X Y Z Lat Lon (Задавать без запятой через пробел/Input divided by space, not comma)" )
+        "args: X Y Z Lat Lon" )
     ( "enu2ecef", po::value<std::vector<double>>( &settings.Input )->multitoken(),
-        "E N U Lat Lon (Задавать без запятой через пробел/Input divided by space, not comma)" )
+        "args: E N U Lat Lon" )
     //
     ( "enu2aer", po::value<std::vector<double>>( &settings.Input )->multitoken(),
-        "E N U (Задавать без запятой через пробел/Input divided by space, not comma)" )
+        "args: E N U" )
     ( "aer2enu", po::value<std::vector<double>>( &settings.Input )->multitoken(),
-        "A E R (Задавать без запятой через пробел/Input divided by space, not comma)" )
+        "args: A E R" )
     //
     ;
     po::options_description cla; // Аргументы командной строки (сommand line arguments)
@@ -192,7 +195,7 @@ int main( int argc, char *argv[] )
     if( vm.count( "km" ) ) {
         settings.RangeUnit = SPML::Units::RU_Kilometer;
     }
-    if( vm.count( "meter" ) ) {
+    if( vm.count( "mer" ) ) {
         settings.RangeUnit = SPML::Units::RU_Meter;
     }
 //    if( vm.count( "outkm" ) ) {
@@ -222,11 +225,43 @@ int main( int argc, char *argv[] )
     //------------------------------------------------------------------------------------------------------------------
     // Эллипсоид
     if( vm.count( "el" ) ) {
-        settings.EllipsoidNumber = vm["el"].as<int>();
-        if( settings.EllipsoidNumber < 0 || settings.EllipsoidNumber > ( ellipsoids.size() - 1 ) ) {
+        std::string elName = vm["el"].as<std::string>();
+        if( elName == "wgs84" ) {
+            settings.EllipsoidNumber = 0;
+        } else if( elName == "grs80" ) {
+            settings.EllipsoidNumber = 1;
+        } else if( elName == "pz90" ) {
+            settings.EllipsoidNumber = 2;
+        } else if( elName == "krassowsky1940" ) {
+            settings.EllipsoidNumber = 3;
+        } else if( elName == "sphere6371" ) {
+            settings.EllipsoidNumber = 4;
+        } else if( elName == "sphere6378" ) {
+            settings.EllipsoidNumber = 5;
+        } else if( elName == "spherekrassowsky1940" ) {
+            settings.EllipsoidNumber = 6;
+        } else {
             std::cout << "Неверный ввод, смотри --help/Wrong input, read --help" << std::endl;
             return EXIT_FAILURE;
         }
+//        settings.EllipsoidNumber = vm["el"].as<int>();
+//        if( settings.EllipsoidNumber < 0 || settings.EllipsoidNumber > ( ellipsoids.size() - 1 ) ) {
+//            std::cout << "Неверный ввод, смотри --help/Wrong input, read --help" << std::endl;
+//            return EXIT_FAILURE;
+//        }
+    }
+    if( vm.count( "els" ) ) {
+        std::string ellipsoidsString;
+        for( int i = 0; i < ellipsoids.size(); i++ ) {
+            ellipsoidsString += ( ellipsoids.at( i ) ).Name() +
+                " a=" + std::to_string( ( ellipsoids.at( i ) ).A() )+
+                " invf=" + std::to_string( ( ellipsoids.at( i ) ).Invf() );
+            if( i != ellipsoids.size() - 1 ) {
+                ellipsoidsString += "\n";
+            }
+        }
+        std::cout << ellipsoidsString << std::endl;
+        return EXIT_SUCCESS;
     }
     //------------------------------------------------------------------------------------------------------------------
     // Задачи:
