@@ -35,8 +35,8 @@ add_subdirectory(program/spml) # SPML (Special Program Modules Library) - СБ �
 add_subdirectory(program/geocalc) # GEOCALC (Geodetic Calculator) - Геодезический калькулятор
 
 # Тесты
-#enable_testing()
-#add_subdirectory(test/spml)
+enable_testing()
+add_subdirectory(test/spml)
 #add_subdirectory(test/spml/geodesy)
 
 # Генерация документации

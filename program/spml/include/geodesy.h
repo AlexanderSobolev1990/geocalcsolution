@@ -381,9 +381,9 @@ struct UVW
 
     ///
     /// \brief Параметрический конструктор
-    /// \param e - East координата
-    /// \param n - North координата
-    /// \param u - Up координата
+    /// \param u - U координата
+    /// \param v - V координата
+    /// \param w - W координата
     ///
     UVW( double u, double v, double w ) : U( u ), V( v ), W( w )
     {}
@@ -957,7 +957,7 @@ void ECEFtoAER( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit,
 /// \param[in]  ellipsoid  - земной эллипсоид
 /// \param[in]  rangeUnit  - единицы измерения дальности
 /// \param[in]  angleUnit  - единицы измерения углов
-/// \param[in]  aer        - азимут, угол места, наклонная дальность
+/// \param[in]  ecef       - ECEF глобальные декратовы координаты
 /// \param[in]  anchor     - геодезические координаты опорной точки
 /// \return AER координаты точки в ECEF координатах относительно опорной точки
 ///
@@ -969,14 +969,14 @@ AER ECEFtoAER(const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, c
 /// \param[in]  ellipsoid - земной эллипсоид
 /// \param[in]  rangeUnit - единицы измерения дальности
 /// \param[in]  angleUnit - единицы измерения углов
-/// \param[in]  e         - East
-/// \param[in]  n         - North
-/// \param[in]  u         - Up
+/// \param[in]  xEast     - East
+/// \param[in]  yNorth    - North
+/// \param[in]  zUp       - Up
 /// \param[in]  lat0      - широта опорной точки
 /// \param[in]  lon0      - долгота опорной точки
-/// \param[out] x         - ECEF координата X
-/// \param[out] y         - ECEF координата Y
-/// \param[out] z         - ECEF координата X
+/// \param[out] u         - U координата
+/// \param[out] v         - V координата
+/// \param[out] w         - W координата
 ///
 void ENUtoUVW( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
     double xEast, double yNorth, double zUp, double lat0, double lon0, double &u, double &v, double &w );

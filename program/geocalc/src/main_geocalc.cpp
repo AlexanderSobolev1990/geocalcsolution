@@ -134,9 +134,9 @@ int main( int argc, char *argv[] )
         "args: X1 Y1 Z1 X2 Y2 Z2" )
     //
     ( "ecef2enu", po::value<std::vector<double>>( &settings.Input )->multitoken(),
-        "args: X Y Z Lat Lon" )
+        "args: X Y Z Lat0 Lon0" )
     ( "enu2ecef", po::value<std::vector<double>>( &settings.Input )->multitoken(),
-        "args: E N U Lat Lon" )
+        "args: E N U Lat0 Lon0" )
     //
     ( "enu2aer", po::value<std::vector<double>>( &settings.Input )->multitoken(),
         "args: E N U" )
@@ -151,6 +151,11 @@ int main( int argc, char *argv[] )
     ( "geo2aer", po::value<std::vector<double>>( &settings.Input )->multitoken(),
         "args: Lat Lon Height Lat0 Lon0 Height0" )
     ( "aer2geo", po::value<std::vector<double>>( &settings.Input )->multitoken(),
+        "args: A E R Lat0 Lon0 Height0" )
+    //
+    ( "ecef2aer", po::value<std::vector<double>>( &settings.Input )->multitoken(),
+        "args: X Y Z Lat0 Lon0 Height0" )
+    ( "aer2ecef", po::value<std::vector<double>>( &settings.Input )->multitoken(),
         "args: A E R Lat0 Lon0 Height0" )
     ;
     po::options_description cla; // Аргументы командной строки (сommand line arguments)
