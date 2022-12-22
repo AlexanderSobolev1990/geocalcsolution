@@ -798,6 +798,78 @@ ENU ECEFtoENU( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, 
     return ENU( e, n, u );
 }
 //----------------------------------------------------------------------------------------------------------------------
+void ECEFtoENUV( const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
+    double dX, double dY, double dZ, double lat, double lon, double &xEast, double &yNorth, double &zUp )
+{
+    // по умолчанию Метры-Радианы:
+    double _lat = lat;
+    double _lon = lon;
+    double _dX = dX;
+    double _dY = dY;
+    double _dZ = dZ;
+
+    // При необходимости переведем в Радианы-Метры:
+    switch( angleUnit ) {
+        case( Units::TAngleUnit::AU_Radian ): break; // Уже переведено
+        case( Units::TAngleUnit::AU_Degree ):
+        {
+            _lat *= Convert::DgToRdD;
+            _lon *= Convert::DgToRdD;
+            break;
+        }
+        default:
+            assert( false );
+    }
+    switch( rangeUnit ) {
+        case( Units::TRangeUnit::RU_Meter ): break; // Уже переведено
+        case( Units::TRangeUnit::RU_Kilometer):
+        {
+            _dX *= 1000.0;
+            _dY *= 1000.0;
+            _dZ *= 1000.0;
+            break;
+        }
+        default:
+            assert( false );
+    }
+    // Далее в математике используются углы в радианах и дальность в метрах, перевод в нужные единицы у конце
+
+    double cosPhi = std::cos( _lat );
+    double sinPhi = std::sin( _lat );
+    double cosLambda = std::cos( _lon );
+    double sinLambda = std::sin( _lon );
+
+    double t = ( cosLambda * dX ) + ( sinLambda * dY );
+    xEast = ( -sinLambda * dX ) + ( cosLambda * dY );
+
+    zUp    =  ( cosPhi * t ) + ( sinPhi * dZ );
+    yNorth =  ( -sinPhi * t ) + ( cosPhi * dZ );
+
+    // xEast yNorth zUp сейчас в метрах
+
+    // Проверим, нужен ли перевод:
+    switch( rangeUnit ) {
+        case( Units::TRangeUnit::RU_Meter ): break; // Уже переведено
+        case( Units::TRangeUnit::RU_Kilometer ):
+        {
+            xEast *= 0.001;
+            yNorth *= 0.001;
+            zUp *= 0.001;
+            break;
+        }
+        default:
+            assert( false );
+    }
+}
+
+ENU ECEFtoENUV( const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
+    const XYZ &shift, const Geographic &point )
+{
+    double e, n, u;
+    ECEFtoENUV( rangeUnit, angleUnit, shift.X, shift.Y, shift.Z, point.Lat, point.Lon, e, n, u );
+    return ENU( e, n, u );
+}
+//----------------------------------------------------------------------------------------------------------------------
 void ENUtoECEF( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
     double e, double n, double u, double lat, double lon, double h, double &x, double &y, double &z )
 {
@@ -993,9 +1065,17 @@ ENU AERtoENU( const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angle
 void GEOtoENU( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
     double lat, double lon, double h, double lat0, double lon0, double h0, double &xEast, double &yNorth, double &zUp )
 {
-    double dX, dY, dZ;
-    ECEF_offset( ellipsoid, rangeUnit, angleUnit, lat0, lon0, h0, lat, lon, h, dX, dY, dZ );
-    ECEFtoENU( ellipsoid, rangeUnit, angleUnit, dX, dY, dZ, lat0, lon0, h0, xEast, yNorth, zUp );
+    double x, y, z, x0, y0, z0;
+    GEOtoECEF( ellipsoid, rangeUnit, angleUnit, lat, lon, h, x, y, z );
+    GEOtoECEF( ellipsoid, rangeUnit, angleUnit, lat0, lon0, h0, x0, y0, z0 );
+
+    double dx = x - x0;
+    double dy = y - y0;
+    double dz = z - z0;
+
+    ECEFtoENUV( rangeUnit, angleUnit, dx, dy, dz, lat0, lon0, xEast, yNorth, zUp );
+//    ECEF_offset( ellipsoid, rangeUnit, angleUnit, lat0, lon0, h0, lat, lon, h, dX, dY, dZ );
+//    ECEFtoENU( ellipsoid, rangeUnit, angleUnit, dX, dY, dZ, lat0, lon0, h0, xEast, yNorth, zUp );
 }
 
 ENU GEOtoENU( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
@@ -1006,6 +1086,23 @@ ENU GEOtoENU( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, c
         point.Lat, point.Lon, point.Height, anchor.Lat, anchor.Lon, anchor.Height, e, n, u );
     return ENU( e, n, u );
 }
+//----------------------------------------------------------------------------------------------------------------------
+void ENUtoGEO( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
+    double xEast, double yNorth, double zUp, double lat0, double lon0, double h0, double &lat, double &lon, double &h )
+{
+    double x, y, z;
+    ENUtoECEF( ellipsoid, rangeUnit, angleUnit, xEast, yNorth, zUp, lat0, lon0, h0, x, y, z );
+    ECEFtoGEO( ellipsoid, rangeUnit, angleUnit, x, y, z, lat, lon, h );
+}
+
+Geodetic ENUtoGEO( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
+    const ENU &point, const Geodetic &anchor )
+{
+    double lat, lon, h;
+    ENUtoGEO( ellipsoid, rangeUnit, angleUnit, point.E, point.N, point.U, anchor.Lat, anchor.Lon, anchor.Height, lat, lon, h );
+    return Geodetic( lat, lon, h );
+}
+
 //----------------------------------------------------------------------------------------------------------------------
 void GEOtoAER( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
     double lat1, double lon1, double h1, double lat2, double lon2, double h2, double &az, double &elev, double &slantRange )
@@ -1057,6 +1154,134 @@ AER GEOtoAER( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, c
     GEOtoAER( ellipsoid, rangeUnit, angleUnit,
         point1.Lat, point1.Lon, point1.Height, point2.Lat, point2.Lon, point2.Height, a, e, r );
     return AER( a, e, r );
+}
+//----------------------------------------------------------------------------------------------------------------------
+void AERtoGEO( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
+     double az, double elev, double slantRange, double lat0, double lon0, double h0, double &lat, double &lon, double &h )
+{
+    double x, y, z;
+    AERtoECEF( ellipsoid, rangeUnit, angleUnit, az, elev, slantRange, lat0, lon0, h0, x, y, z );
+    ECEFtoGEO( ellipsoid, rangeUnit, angleUnit, x, y, z, lat, lon, h );
+}
+
+Geodetic AERtoGEO( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
+    const AER &aer, const Geodetic &anchor )
+{
+    double lat, lon, h;
+    AERtoGEO( ellipsoid, rangeUnit, angleUnit, aer.A, aer.E, aer.R, anchor.Lat, anchor.Lon, anchor.Height, lat, lon, h );
+    return Geodetic( lat, lon, h );
+}
+//----------------------------------------------------------------------------------------------------------------------
+void AERtoECEF( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
+     double az, double elev, double slantRange, double lat0, double lon0, double h0, double &x, double &y, double &z )
+{
+    double x0, y0, z0, e, n, u, dx, dy, dz;
+    GEOtoECEF( ellipsoid, rangeUnit, angleUnit, lat0, lon0, h0, x0, y0, z0 );
+    AERtoENU( rangeUnit, angleUnit, az, elev, slantRange, e, n, u );
+    ENUtoUVW( ellipsoid, rangeUnit, angleUnit, e, n, u, lat0, lon0, dx, dy, dz );
+    // Origin + offset from origin equals position in ECEF
+    x = x0 + dx;
+    y = y0 + dy;
+    z = z0 + dz;
+
+    // Проверим, нужен ли перевод:
+    switch( rangeUnit ) {
+        case( Units::TRangeUnit::RU_Meter ): break; // Уже переведено
+        case( Units::TRangeUnit::RU_Kilometer ):
+        {
+            x *= 0.001;
+            y *= 0.001;
+            z *= 0.001;
+            break;
+        }
+        default:
+            assert( false );
+    }
+}
+
+XYZ AERtoECEF( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
+     const AER &aer, const Geodetic &anchor )
+{
+    double x, y, z;
+    AERtoECEF( ellipsoid, rangeUnit, angleUnit, aer.A, aer.E, aer.R, anchor.Lat, anchor.Lon, anchor.Height, x, y, z );
+    return XYZ( x, y, z );
+}
+//----------------------------------------------------------------------------------------------------------------------
+void ECEFtoAER( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
+    double x, double y, double z, double lat0, double lon0, double h0, double &az, double &elev, double &slantRange )
+{
+    double e, n, u;
+    ECEFtoENU( ellipsoid, rangeUnit, angleUnit, x, y, z, lat0, lon0, h0, e, n, u );
+    ENUtoAER( rangeUnit, angleUnit, e, n, u, az, elev, slantRange );
+}
+
+AER ECEFtoAER(const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
+     const XYZ &ecef, const Geodetic &anchor )
+{
+    double a, e, r;
+    ECEFtoAER( ellipsoid, rangeUnit, angleUnit, ecef.X, ecef.Y, ecef.Z, anchor.Lat, anchor.Lon, anchor.Height, a, e, r );
+    return AER( a, e, r );
+}
+//----------------------------------------------------------------------------------------------------------------------
+void ENUtoUVW( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
+    double xEast, double yNorth, double zUp, double lat0, double lon0, double &u, double &v, double &w )
+{
+    double _xEast = xEast;
+    double _yNorth = yNorth;
+    double _zUp = zUp;
+    double _lat0 = lat0;
+    double _lon0 = lon0;
+
+    switch( angleUnit ) {
+        case( Units::TAngleUnit::AU_Radian ): break; // Уже переведено
+        case( Units::TAngleUnit::AU_Degree ):
+        {
+            _lat0 *= Convert::DgToRdD;
+            _lon0 *= Convert::DgToRdD;
+            break;
+        }
+        default:
+            assert( false );
+    }
+    switch( rangeUnit ) {
+        case( Units::TRangeUnit::RU_Meter ): break; // Уже переведено
+        case( Units::TRangeUnit::RU_Kilometer):
+        {
+            _xEast *= 1000.0;
+            _yNorth *= 1000.0;
+            _zUp *= 1000.0;
+            break;
+        }
+        default:
+            assert( false );
+    }
+
+    double t = std::cos( _lat0 ) * _zUp - std::sin( _lat0 ) * _yNorth;
+    w = std::sin( _lat0 ) * _zUp + std::cos( _lat0 ) * _yNorth;
+    u = std::cos( _lon0 ) * t - std::sin( _lon0 ) * _xEast;
+    v = std::sin( _lon0 ) * t + std::cos( _lon0 ) * _xEast;
+
+    // Проверим, нужен ли перевод:
+    switch( rangeUnit ) {
+        case( Units::TRangeUnit::RU_Meter ): break; // Уже переведено
+        case( Units::TRangeUnit::RU_Kilometer ):
+        {
+            w *= 0.001;
+            u *= 0.001;
+            v *= 0.001;
+            break;
+        }
+        default:
+            assert( false );
+    }
+}
+
+UVW ENUtoUVW( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
+    const ENU &enu, const Geographic &point )
+{
+    double u, v, w;
+    ENUtoUVW( ellipsoid, rangeUnit, angleUnit, enu.E, enu.N, enu.U, point.Lat, point.Lon, u, v, w );
+    return UVW( u, v, w );
 }
 //----------------------------------------------------------------------------------------------------------------------
 double CosAngleBetweenVectors( double x1, double y1, double z1, double x2, double y2, double z2 )

@@ -85,6 +85,7 @@ struct CCoordCalcSettings
 int main( int argc, char *argv[] )
 {
     CCoordCalcSettings settings; // Параметры приложения
+    auto ellipsoids = SPML::Geodesy::Ellipsoids::GetPredefinedEllipsoids(); // Используемые эллипсоиды
     //------------------------------------------------------------------------------------------------------------------
     // Зададим параметры запуска приложения
     namespace po = boost::program_options;
@@ -92,18 +93,6 @@ int main( int argc, char *argv[] )
         "\n\nРешение геодезических задач и перевод координат (в двойной точности)"
         "\nSolve geodetic problems and convert coordinates (double precision)"
         "\n\nПараметры/Parameters", 220 ); // 220 - задает ширину строки вывода в терминал
-
-    auto ellipsoids = SPML::Geodesy::Ellipsoids::GetPredefinedEllipsoids(); // Используемые эллипсоиды
-//    std::string ellipsoidsString;
-//    for( int i = 0; i < ellipsoids.size(); i++ ) {
-////        ellipsoidsString += std::to_string( i ) + " : " + ( ellipsoids.at( i ) ).Name();// + "\n";
-//        ellipsoidsString += std::to_string( i ) + " : " + ( ellipsoids.at( i ) ).Name();// + "\n";
-//        if( i != ellipsoids.size() - 1 ) {
-//            ellipsoidsString += "\n";
-//        }
-//    }
-//    std::string ellipsoidsStringAll = "По умолчанию расчет на WGS84/ Default is WGS84\n" + ellipsoidsString;
-
     desc.add_options()
     // Справочные параметры:
     ( "help", "Показать эту справку и выйти/Show this text and exit" )
@@ -154,6 +143,15 @@ int main( int argc, char *argv[] )
     ( "aer2enu", po::value<std::vector<double>>( &settings.Input )->multitoken(),
         "args: A E R" )
     //
+    ( "geo2enu", po::value<std::vector<double>>( &settings.Input )->multitoken(),
+        "args: Lat Lon Height Lat0 Lon0 Height0" )
+    ( "enu2geo", po::value<std::vector<double>>( &settings.Input )->multitoken(),
+        "args: E N U Lat0 Lon0 Height0" )
+    //
+    ( "geo2aer", po::value<std::vector<double>>( &settings.Input )->multitoken(),
+        "args: Lat Lon Height Lat0 Lon0 Height0" )
+    ( "aer2geo", po::value<std::vector<double>>( &settings.Input )->multitoken(),
+        "args: A E R Lat0 Lon0 Height0" )
     ;
     po::options_description cla; // Аргументы командной строки (сommand line arguments)
     cla.add( desc );
@@ -195,7 +193,7 @@ int main( int argc, char *argv[] )
     if( vm.count( "km" ) ) {
         settings.RangeUnit = SPML::Units::RU_Kilometer;
     }
-    if( vm.count( "mer" ) ) {
+    if( vm.count( "me" ) ) {
         settings.RangeUnit = SPML::Units::RU_Meter;
     }
 //    if( vm.count( "outkm" ) ) {
@@ -598,8 +596,223 @@ int main( int argc, char *argv[] )
             std::cout << resultDelta << std::endl;
         }
     }
+    //------------------------------------------------------------------------------------------------------------------
+    if( vm.count( "geo2enu" ) ) {
+        settings.Input = vm["geo2enu"].as<std::vector<double>>();
+        if( settings.Input.size() != 6 ) {
+            std::cout << "Неверный ввод, смотри --help/Wrong input, read --help" << std::endl;
+            return EXIT_FAILURE;
+        }
 
+        double e, n, u;
+        SPML::Geodesy::GEOtoENU( ellipsoids.at( settings.EllipsoidNumber ), settings.RangeUnit, settings.AngleUnit,
+            settings.Input[0], settings.Input[1], settings.Input[2],
+            settings.Input[3], settings.Input[4], settings.Input[5], e, n, u );
+        std::string result = "East[" + outrange + "] North[" + outrange + "] Up[" + outrange + "]:\n" +
+            to_string_with_precision( e, settings.Precision ) + " " +
+            to_string_with_precision( n, settings.Precision ) + " " +
+            to_string_with_precision( u, settings.Precision );
+        std::cout << result << std::endl;
 
+        if( vm.count( "check" ) ) {
+            std::cout << "\nCheck by solving inverse task and calc delta:" << std::endl;
+            double lat, lon, h;
+            SPML::Geodesy::ENUtoGEO( ellipsoids.at( settings.EllipsoidNumber ), settings.RangeUnit, settings.AngleUnit,
+                e, n, u, settings.Input[3], settings.Input[4], settings.Input[5], lat, lon, h );
+            std::string result2 = "Lat[" + outangle + "] Lon[" + outangle + "] Height[" + outrange + "]:\n" +
+                to_string_with_precision( lat, settings.Precision ) + " " +
+                to_string_with_precision( lon, settings.Precision ) + " " +
+                to_string_with_precision( h, settings.Precision );
+            std::cout << result2 << std::endl;
+            std::cout << "\nDelta:" << std::endl;
+            std::string resultDelta = "Lat[" + outangle + "] Lon[" + outangle + "] Height[" + outrange + "]:\n" +
+                to_string_with_precision( settings.Input[0] - lat, settings.Precision ) + " " +
+                to_string_with_precision( settings.Input[1] - lon, settings.Precision ) + " " +
+                to_string_with_precision( settings.Input[2] - h, settings.Precision );
+            std::cout << resultDelta << std::endl;
+        }
+    }
+    //------------------------------------------------------------------------------------------------------------------
+    if( vm.count( "enu2geo" ) ) {
+        settings.Input = vm["enu2geo"].as<std::vector<double>>();
+        if( settings.Input.size() != 6 ) {
+            std::cout << "Неверный ввод, смотри --help/Wrong input, read --help" << std::endl;
+            return EXIT_FAILURE;
+        }
+
+        double lat, lon, h;
+        SPML::Geodesy::ENUtoGEO( ellipsoids.at( settings.EllipsoidNumber ), settings.RangeUnit, settings.AngleUnit,
+            settings.Input[0], settings.Input[1], settings.Input[2],
+            settings.Input[3], settings.Input[4], settings.Input[5], lat, lon, h );
+        std::string result = "Lat[" + outangle + "] Lon[" + outangle + "] Height[" + outrange + "]:\n" +
+            to_string_with_precision( lat, settings.Precision ) + " " +
+            to_string_with_precision( lon, settings.Precision ) + " " +
+            to_string_with_precision( h, settings.Precision );
+        std::cout << result << std::endl;
+
+        if( vm.count( "check" ) ) {
+            std::cout << "\nCheck by solving inverse task and calc delta:" << std::endl;
+            double e, n, u;
+            SPML::Geodesy::GEOtoENU( ellipsoids.at( settings.EllipsoidNumber ), settings.RangeUnit, settings.AngleUnit,
+                lat, lon, h, settings.Input[3], settings.Input[4], settings.Input[5], e, n, u );
+            std::string result2 = "East[" + outrange + "] North[" + outrange + "] Up[" + outrange + "]:\n" +
+                to_string_with_precision( e, settings.Precision ) + " " +
+                to_string_with_precision( n, settings.Precision ) + " " +
+                to_string_with_precision( u, settings.Precision );
+            std::cout << result2 << std::endl;
+            std::cout << "\nDelta:" << std::endl;
+            std::string resultDelta = "East[" + outrange + "] North[" + outrange + "] Up[" + outrange + "]:\n" +
+                to_string_with_precision( settings.Input[0] - e, settings.Precision ) + " " +
+                to_string_with_precision( settings.Input[1] - n, settings.Precision ) + " " +
+                to_string_with_precision( settings.Input[2] - u, settings.Precision );
+            std::cout << resultDelta << std::endl;
+        }
+    }
+    //------------------------------------------------------------------------------------------------------------------
+    if( vm.count( "geo2aer" ) ) {
+        settings.Input = vm["geo2aer"].as<std::vector<double>>();
+        if( settings.Input.size() != 6 ) {
+            std::cout << "Неверный ввод, смотри --help/Wrong input, read --help" << std::endl;
+            return EXIT_FAILURE;
+        }
+
+        double a, e, r;
+        SPML::Geodesy::GEOtoAER( ellipsoids.at( settings.EllipsoidNumber ), settings.RangeUnit, settings.AngleUnit,
+            settings.Input[0], settings.Input[1], settings.Input[2],
+            settings.Input[3], settings.Input[4], settings.Input[5], a, e, r );
+        std::string result = "Azimuth[" + outangle + "] Elevation[" + outangle + "] slantRange[" + outrange + "]:\n" +
+            to_string_with_precision( a, settings.Precision ) + " " +
+            to_string_with_precision( e, settings.Precision ) + " " +
+            to_string_with_precision( r, settings.Precision );
+        std::cout << result << std::endl;
+
+        if( vm.count( "check" ) ) {
+            std::cout << "\nCheck by solving inverse task and calc delta:" << std::endl;
+            double lat, lon, h;
+            SPML::Geodesy::AERtoGEO( ellipsoids.at( settings.EllipsoidNumber ), settings.RangeUnit, settings.AngleUnit,
+                a, e, r, settings.Input[3], settings.Input[4], settings.Input[5], lat, lon, h );
+            std::string result2 = "Lat[" + outangle + "] Lon[" + outangle + "] Height[" + outrange + "]:\n" +
+                to_string_with_precision( lat, settings.Precision ) + " " +
+                to_string_with_precision( lon, settings.Precision ) + " " +
+                to_string_with_precision( h, settings.Precision );
+            std::cout << result2 << std::endl;
+            std::cout << "\nDelta:" << std::endl;
+            std::string resultDelta = "Lat[" + outangle + "] Lon[" + outangle + "] Height[" + outrange + "]:\n" +
+                to_string_with_precision( settings.Input[0] - lat, settings.Precision ) + " " +
+                to_string_with_precision( settings.Input[1] - lon, settings.Precision ) + " " +
+                to_string_with_precision( settings.Input[2] - h, settings.Precision );
+            std::cout << resultDelta << std::endl;
+        }
+    }
+    //------------------------------------------------------------------------------------------------------------------
+    if( vm.count( "aer2geo" ) ) {
+        settings.Input = vm["aer2geo"].as<std::vector<double>>();
+        if( settings.Input.size() != 6 ) {
+            std::cout << "Неверный ввод, смотри --help/Wrong input, read --help" << std::endl;
+            return EXIT_FAILURE;
+        }
+
+        double lat, lon, h;
+        SPML::Geodesy::ENUtoGEO( ellipsoids.at( settings.EllipsoidNumber ), settings.RangeUnit, settings.AngleUnit,
+            settings.Input[0], settings.Input[1], settings.Input[2],
+            settings.Input[3], settings.Input[4], settings.Input[5], lat, lon, h );
+        std::string result = "Lat[" + outangle + "] Lon[" + outangle + "] Height[" + outrange + "]:\n" +
+            to_string_with_precision( lat, settings.Precision ) + " " +
+            to_string_with_precision( lon, settings.Precision ) + " " +
+            to_string_with_precision( h, settings.Precision );
+        std::cout << result << std::endl;
+
+        if( vm.count( "check" ) ) {
+            std::cout << "\nCheck by solving inverse task and calc delta:" << std::endl;
+            double e, n, u;
+            SPML::Geodesy::GEOtoENU( ellipsoids.at( settings.EllipsoidNumber ), settings.RangeUnit, settings.AngleUnit,
+                lat, lon, h, settings.Input[3], settings.Input[4], settings.Input[5], e, n, u );
+            std::string result2 = "East[" + outrange + "] North[" + outrange + "] Up[" + outrange + "]:\n" +
+                to_string_with_precision( e, settings.Precision ) + " " +
+                to_string_with_precision( n, settings.Precision ) + " " +
+                to_string_with_precision( u, settings.Precision );
+            std::cout << result2 << std::endl;
+            std::cout << "\nDelta:" << std::endl;
+            std::string resultDelta = "East[" + outrange + "] North[" + outrange + "] Up[" + outrange + "]:\n" +
+                to_string_with_precision( settings.Input[0] - e, settings.Precision ) + " " +
+                to_string_with_precision( settings.Input[1] - n, settings.Precision ) + " " +
+                to_string_with_precision( settings.Input[2] - u, settings.Precision );
+            std::cout << resultDelta << std::endl;
+        }
+    }
+    //------------------------------------------------------------------------------------------------------------------
+    if( vm.count( "ecef2aer" ) ) {
+        settings.Input = vm["ecef2aer"].as<std::vector<double>>();
+        if( settings.Input.size() != 6 ) {
+            std::cout << "Неверный ввод, смотри --help/Wrong input, read --help" << std::endl;
+            return EXIT_FAILURE;
+        }
+
+        double a, e, r;
+        SPML::Geodesy::ECEFtoAER( ellipsoids.at( settings.EllipsoidNumber ), settings.RangeUnit, settings.AngleUnit,
+            settings.Input[0], settings.Input[1], settings.Input[2], settings.Input[3], settings.Input[4], settings.Input[5],
+            a, e, r );
+        std::string result = "Azimuth[" + outangle + "] Elevation[" + outangle + "] slantRange[" + outrange + "]:\n" +
+            to_string_with_precision( a, settings.Precision ) + " " +
+            to_string_with_precision( e, settings.Precision ) + " " +
+            to_string_with_precision( r, settings.Precision );
+        std::cout << result << std::endl;
+
+        if( vm.count( "check" ) ) {
+            std::cout << "\nCheck by solving inverse task and calc delta:" << std::endl;
+            double x, y, z;
+            SPML::Geodesy::AERtoECEF( ellipsoids.at( settings.EllipsoidNumber ), settings.RangeUnit, settings.AngleUnit,
+                 a, e, r, settings.Input[3], settings.Input[4], settings.Input[5], x, y, z );
+            std::string result2 = "X[" + outrange + "] Y[" + outrange + "] Z[" + outrange + "]:\n" +
+                to_string_with_precision( x, settings.Precision ) + " " +
+                to_string_with_precision( y, settings.Precision ) + " " +
+                to_string_with_precision( z, settings.Precision );
+            std::cout << result2 << std::endl;
+            std::cout << "\nDelta:" << std::endl;
+            std::string resultDelta = "X[" + outrange + "] Y[" + outrange + "] Z[" + outrange + "]:\n" +
+                to_string_with_precision( settings.Input[0] - x, settings.Precision ) + " " +
+                to_string_with_precision( settings.Input[1] - y, settings.Precision ) + " " +
+                to_string_with_precision( settings.Input[2] - z, settings.Precision );
+            std::cout << resultDelta << std::endl;
+        }
+    }
+    //------------------------------------------------------------------------------------------------------------------
+    if( vm.count( "aer2ecef" ) ) {
+        settings.Input = vm["aer2ecef"].as<std::vector<double>>();
+        if( settings.Input.size() != 6 ) {
+            std::cout << "Неверный ввод, смотри --help/Wrong input, read --help" << std::endl;
+            return EXIT_FAILURE;
+        }
+
+        double x, y, z;
+        SPML::Geodesy::AERtoECEF( ellipsoids.at( settings.EllipsoidNumber ), settings.RangeUnit, settings.AngleUnit,
+            settings.Input[0], settings.Input[1], settings.Input[2],
+            settings.Input[3], settings.Input[4], settings.Input[5], x, y, z );
+        std::string result = "X[" + outrange + "] Y[" + outrange + "] Z[" + outrange + "]:\n" +
+            to_string_with_precision( x, settings.Precision ) + " " +
+            to_string_with_precision( y, settings.Precision ) + " " +
+            to_string_with_precision( z, settings.Precision );
+        std::cout << result << std::endl;
+
+        if( vm.count( "check" ) ) {
+            std::cout << "\nCheck by solving inverse task and calc delta:" << std::endl;
+            double a, e, r;
+            SPML::Geodesy::ECEFtoAER( ellipsoids.at( settings.EllipsoidNumber ), settings.RangeUnit, settings.AngleUnit,
+                 x, y, z, settings.Input[3], settings.Input[4], settings.Input[5], a, e, r );
+            std::string result2 = "Azimuth[" + outangle + "] Elevation[" + outangle + "] slantRange[" + outrange + "]:\n" +
+                to_string_with_precision( a, settings.Precision ) + " " +
+                to_string_with_precision( e, settings.Precision ) + " " +
+                to_string_with_precision( r, settings.Precision );
+            std::cout << result2 << std::endl;
+            std::cout << "\nDelta:" << std::endl;
+            std::string resultDelta = "Azimuth[" + outangle + "] Elevation[" + outangle + "] slantRange[" + outrange + "]:\n" +
+                to_string_with_precision( settings.Input[0] - a, settings.Precision ) + " " +
+                to_string_with_precision( settings.Input[1] - e, settings.Precision ) + " " +
+                to_string_with_precision( settings.Input[2] - r, settings.Precision );
+            std::cout << resultDelta << std::endl;
+        }
+    }
+    //------------------------------------------------------------------------------------------------------------------
     return EXIT_SUCCESS;
 }// end main
 /// \}

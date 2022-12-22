@@ -365,7 +365,33 @@ struct ENU
 
 //----------------------------------------------------------------------------------------------------------------------
 ///
-/// \brief Координаты AER (Azimuth-Elevation-Range, Азимут-Угол места-Дальность)
+/// \brief Координаты UVW
+///
+struct UVW
+{
+    double U; ///< U координата
+    double V; ///< V координата
+    double W; ///< W координата
+
+    ///
+    /// \brief Конструктор по умолчанию
+    ///
+    UVW() : U( 0.0 ), V( 0.0 ), W( 0.0 )
+    {}
+
+    ///
+    /// \brief Параметрический конструктор
+    /// \param e - East координата
+    /// \param n - North координата
+    /// \param u - Up координата
+    ///
+    UVW( double u, double v, double w ) : U( u ), V( v ), W( w )
+    {}
+};
+
+//----------------------------------------------------------------------------------------------------------------------
+///
+/// \brief Локальные сферические координаты AER (Azimuth-Elevation-Range, Азимут-Угол места-Дальность)
 ///
 struct AER
 {
@@ -642,6 +668,35 @@ void ECEFtoENU( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit,
 ///
 ENU ECEFtoENU( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
     const XYZ &ecef, const Geodetic &point );
+
+//----------------------------------------------------------------------------------------------------------------------
+///
+/// \brief Перевод ECEF координат точки в ENU относительно географических координат (lat, lon)
+/// \param[in]  rangeUnit - единицы измерения дальности
+/// \param[in]  angleUnit - единицы измерения углов
+/// \param[in]  dX        - смещение по оси X
+/// \param[in]  dY        - смещение по оси Y
+/// \param[in]  dZ        - смещение по оси Z
+/// \param[in]  lat       - широта точки
+/// \param[in]  lon       - долгота точки
+/// \param[out] xEast     - ENU координата X (East)
+/// \param[out] yNorth    - ENU координата Y (North)
+/// \param[out] zUp       - ENU координата X (Up)
+///
+void ECEFtoENUV( const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
+    double dX, double dY, double dZ, double lat, double lon, double &xEast, double &yNorth, double &zUp );
+
+///
+/// \brief Перевод ECEF координат точки в ENU относительно географических координат point
+/// \param[in] rangeUnit - единицы измерения дальности
+/// \param[in] angleUnit - единицы измерения углов
+/// \param[in] shift - смещение по декартовым осям
+/// \param[in] point - точка
+/// \return Координаты ENU точки point
+///
+ENU ECEFtoENUV( const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
+    const XYZ &shift, const Geographic &point );
+
 //----------------------------------------------------------------------------------------------------------------------
 ///
 /// \brief Перевод ENU координат точки в ECEF относительно географических координат опорной точки (lat, lon)
@@ -756,6 +811,38 @@ ENU GEOtoENU( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, c
 
 //----------------------------------------------------------------------------------------------------------------------
 ///
+/// \brief Перевод координат ENU в геодезические координаты GEO относительно опорной точки
+/// \param[in]  ellipsoid - земной эллипсоид
+/// \param[in]  rangeUnit - единицы измерения дальности
+/// \param[in]  angleUnit - единицы измерения углов
+/// \param[in]  xEast     - ENU координата X (East)
+/// \param[in]  yNorth    - ENU координата Y (North)
+/// \param[in]  zUp       - ENU координата X (Up)
+/// \param[in]  lat0      - широта опорной точки
+/// \param[in]  lon0      - долгота опорной точки
+/// \param[in]  h0        - высота опорной точки
+/// \param[out] lat       - широта точки
+/// \param[out] lon       - долгота точки
+/// \param[out] h         - высота точки
+
+///
+void ENUtoGEO( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
+    double xEast, double yNorth, double zUp, double lat0, double lon0, double h0, double &lat, double &lon, double &h );
+
+///
+/// \brief Перевод координат ENU в геодезические координаты GEO относительно опорной точки
+/// \param[in] ellipsoid - земной эллипсоид
+/// \param[in] rangeUnit - единицы измерения дальности
+/// \param[in] angleUnit - единицы измерения углов
+/// \param[in] point     - ENU координаты точки
+/// \param[in] anchor    - геодезические координаты опорной точки
+/// \return геодезические координаты точки point
+///
+Geodetic ENUtoGEO( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
+    const ENU &point, const Geodetic &anchor );
+
+//----------------------------------------------------------------------------------------------------------------------
+///
 /// \brief Вычисление AER координат между двумя геодезическими точками
 /// \param[in]  ellipsoid  - земной эллипсоид
 /// \param[in]  rangeUnit  - единицы измерения дальности
@@ -785,6 +872,127 @@ void GEOtoAER( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, 
 AER GEOtoAER( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
      const Geodetic &point1, const Geodetic &point2 );
 
+//----------------------------------------------------------------------------------------------------------------------
+///
+/// \brief Перевод AER координат в геодезические относительно опорной точки
+/// \param[in]  ellipsoid  - земной эллипсоид
+/// \param[in]  rangeUnit  - единицы измерения дальности
+/// \param[in]  angleUnit  - единицы измерения углов
+/// \param[in]  az         - азимут из опорной точки на искомую точку
+/// \param[in]  elev       - угол места из опорной точки на искомую точку
+/// \param[in]  slantRange - наклонная дальность от опорной точки до искомой точки
+/// \param[in]  lat0       - широта опорной точки
+/// \param[in]  lon0       - долгота опорной точки
+/// \param[in]  h0         - высота опорной точки
+/// \param[out] lat        - широта искомой точки
+/// \param[out] lon        - долгота искомой точки
+/// \param[out] h          - высота искомой точки
+///
+void AERtoGEO( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
+     double az, double elev, double slantRange, double lat0, double lon0, double h0, double &lat, double &lon, double &h );
+
+///
+/// \brief Перевод AER координат в геодезические относительно опорной точки
+/// \param[in]  ellipsoid  - земной эллипсоид
+/// \param[in]  rangeUnit  - единицы измерения дальности
+/// \param[in]  angleUnit  - единицы измерения углов
+/// \param[in]  aer        - азимут, угол места, наклонная дальность от опорной точки на искомую
+/// \param[in]  anchor     - геодезические координаты опорной точки
+/// \return Геодезические координаты конечной точки координат AER относительно опорной точки
+///
+Geodetic AERtoGEO( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
+     const AER &aer, const Geodetic &anchor );
+
+//----------------------------------------------------------------------------------------------------------------------
+///
+/// \brief Перевод AER координат относительно опорной точки в глобальные декартовые
+/// \param[in]  ellipsoid  - земной эллипсоид
+/// \param[in]  rangeUnit  - единицы измерения дальности
+/// \param[in]  angleUnit  - единицы измерения углов
+/// \param[in]  az         - азимут из опорной точки на искомую точку
+/// \param[in]  elev       - угол места из опорной точки на искомую точку
+/// \param[in]  slantRange - наклонная дальность от опорной точки до искомой точки
+/// \param[in]  lat0       - широта опорной точки
+/// \param[in]  lon0       - долгота опорной точки
+/// \param[in]  h0         - высота опорной точки
+/// \param[out] x          - ECEF координата X
+/// \param[out] y          - ECEF координата Y
+/// \param[out] z          - ECEF координата X
+///
+void AERtoECEF( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
+     double az, double elev, double slantRange, double lat0, double lon0, double h0, double &x, double &y, double &z );
+
+///
+/// \brief Перевод AER координат относительно опорной точки в глобальные декартовые
+/// \param[in]  ellipsoid  - земной эллипсоид
+/// \param[in]  rangeUnit  - единицы измерения дальности
+/// \param[in]  angleUnit  - единицы измерения углов
+/// \param[in]  aer        - азимут, угол места, наклонная дальность
+/// \param[in]  anchor     - геодезические координаты опорной точки
+/// \return AER координаты точки в ECEF координатах относительно опорной точки
+///
+XYZ AERtoECEF( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
+     const AER &aer, const Geodetic &anchor );
+//----------------------------------------------------------------------------------------------------------------------
+///
+/// \brief Перевод AER координат относительно опорной точки в глобальные декартовые
+/// \param[in]  ellipsoid  - земной эллипсоид
+/// \param[in]  rangeUnit  - единицы измерения дальности
+/// \param[in]  angleUnit  - единицы измерения углов
+/// \param[in]  x          - ECEF координата X
+/// \param[in]  y          - ECEF координата Y
+/// \param[in]  z          - ECEF координата X
+/// \param[in]  lat0       - широта опорной точки
+/// \param[in]  lon0       - долгота опорной точки
+/// \param[in]  h0         - высота опорной точки
+/// \param[out] az         - азимут из опорной точки на искомую точку
+/// \param[out] elev       - угол места из опорной точки на искомую точку
+/// \param[out] slantRange - наклонная дальность от опорной точки до искомой точки
+///
+void ECEFtoAER( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
+    double x, double y, double z, double lat0, double lon0, double h0, double &az, double &elev, double &slantRange );
+
+///
+/// \brief Перевод AER координат относительно опорной точки в глобальные декартовые
+/// \param[in]  ellipsoid  - земной эллипсоид
+/// \param[in]  rangeUnit  - единицы измерения дальности
+/// \param[in]  angleUnit  - единицы измерения углов
+/// \param[in]  aer        - азимут, угол места, наклонная дальность
+/// \param[in]  anchor     - геодезические координаты опорной точки
+/// \return AER координаты точки в ECEF координатах относительно опорной точки
+///
+AER ECEFtoAER(const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
+     const XYZ &ecef, const Geodetic &anchor );
+//----------------------------------------------------------------------------------------------------------------------
+///
+/// \brief Перевод ENU координат точки в UVW координаты
+/// \param[in]  ellipsoid - земной эллипсоид
+/// \param[in]  rangeUnit - единицы измерения дальности
+/// \param[in]  angleUnit - единицы измерения углов
+/// \param[in]  e         - East
+/// \param[in]  n         - North
+/// \param[in]  u         - Up
+/// \param[in]  lat0      - широта опорной точки
+/// \param[in]  lon0      - долгота опорной точки
+/// \param[out] x         - ECEF координата X
+/// \param[out] y         - ECEF координата Y
+/// \param[out] z         - ECEF координата X
+///
+void ENUtoUVW( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
+    double xEast, double yNorth, double zUp, double lat0, double lon0, double &u, double &v, double &w );
+
+///
+/// \brief Перевод ENU координат точки в UVW координаты
+/// \details https://gssc.esa.int/navipedia/index.php/Transformations_between_ECEF_and_ENU_coordinates
+/// \param[in] ellipsoid - земной эллипсоид
+/// \param[in] rangeUnit - единицы измерения дальности
+/// \param[in] angleUnit - единицы измерения углов
+/// \param[in] enu - East, North, Up координаты точки
+/// \param[in] point - точка
+/// \return Координаты ECEF точки point
+///
+UVW ENUtoUVW( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
+    const ENU &enu, const Geographic &point );
 //----------------------------------------------------------------------------------------------------------------------
 ///
 /// \brief Косинус угла между векторами в евклидовом пространстве

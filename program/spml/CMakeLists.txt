@@ -34,10 +34,10 @@ find_package(LAPACK REQUIRED)
 find_package(Armadillo REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system program_options)
 
-include_directories(${ARMADILLO_INCLUDE_DIRS})
+#include_directories(${ARMADILLO_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME}
     PUBLIC
-        ${ARMADILLO_LIBRARIES}
+#        ${ARMADILLO_LIBRARIES}
         pthread
         Boost::system
         Boost::program_options
