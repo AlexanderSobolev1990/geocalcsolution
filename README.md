@@ -13,6 +13,15 @@
 
 \f$d = \sqrt{ (x_1-x_2)^2 + (y_1-y_2)^2 + (z_1-z_2)^2 } \f$
 
+$$ d = \sqrt{ (x_1-x_2)^2 + (y_1-y_2)^2 + (z_1-z_2)^2 } $$
+
+$\left \{ \begin{array}{rll}
+\nabla \cdot \mathbf{E} &=& \displaystyle \frac {\rho} {\varepsilon_0} \\
+\nabla \cdot \mathbf{B} &=& 0 \\
+\nabla \times \mathbf{E} &=& \displaystyle - \frac{\partial \mathbf{B}} {\partial t} \\
+\nabla \times \mathbf{B} &=& \displaystyle \mu_0\mathbf{J} + \mu_0 \varepsilon_0 \frac{\partial \mathbf{E}} {\partial t}  \\
+\end{array} \right $
+
 ## 2. References / Ссылки ##
 Papers / Статьи:
 
