@@ -429,7 +429,7 @@ static double dummy_double; // Заглушка для списка параме
 /// \details    Расчет на эллипсоиде по формулам Винсента:
 ///             \n Vincenty, Thaddeus (April 1975a). "Direct and Inverse Solutions of Geodesics on the Ellipsoid with
 ///             application of nested equations". Survey Review. XXIII (176): 88–93.
-///             \n Расчет на сфере:
+///             \n\n  Расчет на сфере:
 ///             \n Морозов В.П. Курс сфероидической геодезии. Изд. 2, перераб и доп. М.,Недра, 1979, 296 с., стр 97-100
 /// \param[in]  ellipsoid - земной эллипсоид
 /// \param[in]  rangeUnit - единицы измерения дальности
@@ -450,7 +450,7 @@ void GEOtoRAD( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, 
 /// \details    Расчет на эллипсоиде по формулам Винсента:
 ///             \n Vincenty, Thaddeus (April 1975a). "Direct and Inverse Solutions of Geodesics on the Ellipsoid with
 ///             application of nested equations". Survey Review. XXIII (176): 88–93.
-///             \n Расчет на сфере:
+///             \n\n  Расчет на сфере:
 ///             \n Морозов В.П. Курс сфероидической геодезии. Изд. 2, перераб и доп. М.,Недра, 1979, 296 с., стр 97-100
 /// \param[in] ellipsoid - земной эллипсоид
 /// \param[in] rangeUnit - единицы измерения дальности
@@ -469,7 +469,7 @@ RAD GEOtoRAD( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, c
 /// \details    Расчет на эллипсоиде по формулам Винсента:
 ///             \n Vincenty, Thaddeus (April 1975a). "Direct and Inverse Solutions of Geodesics on the Ellipsoid with
 ///             application of nested equations". Survey Review. XXIII (176): 88–93.
-///             \n Расчет на сфере:
+///             \n\n  Расчет на сфере:
 ///             \n Морозов В.П. Курс сфероидической геодезии. Изд. 2, перераб и доп. М.,Недра, 1979, 296 с., стр 97-100
 /// \param[in]  ellipsoid - земной эллипсоид
 /// \param[in]  rangeUnit - единицы измерения дальности
@@ -490,7 +490,7 @@ void RADtoGEO( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, 
 /// \details    Расчет на эллипсоиде по формулам Винсента:
 ///             \n Vincenty, Thaddeus (April 1975a). "Direct and Inverse Solutions of Geodesics on the Ellipsoid with
 ///             application of nested equations". Survey Review. XXIII (176): 88–93.
-///             \n Расчет на сфере:
+///             \n\n Расчет на сфере:
 ///             \n Морозов В.П. Курс сфероидической геодезии. Изд. 2, перераб и доп. М.,Недра, 1979, 296 с., стр 97-100
 /// \param[in]  ellipsoid - земной эллипсоид
 /// \param[in]  rangeUnit - единицы измерения дальности
@@ -512,7 +512,7 @@ Geographic RADtoGEO( const CEllipsoid &ellipsoid, const Units::TRangeUnit &range
 ///             ось X - через пересечение гринвичского меридиана и экватора,
 ///             ось Y - через пересечение меридиана 90 [град] восточной долготы и экватора,
 ///             ось Z - через северный полюс.
-///             Источник - Морозов В.П. Курс сфероидической геодезии. Изд. 2, перераб и доп. М.,Недра, 1979, 296 с., стр 191
+///             \n Источник - Морозов В.П. Курс сфероидической геодезии. Изд. 2, перераб и доп. М.,Недра, 1979, 296 с., стр 191
 /// \param[in]  ellipsoid - земной эллипсоид
 /// \param[in]  rangeUnit - единицы измерения дальности
 /// \param[in]  angleUnit - единицы измерения углов
@@ -533,7 +533,7 @@ void GEOtoECEF( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit,
 ///             ось X - через пересечение гринвичского меридиана и экватора,
 ///             ось Y - через пересечение меридиана 90 [град] восточной долготы и экватора,
 ///             ось Z - через северный полюс.
-///             Источник - Морозов В.П. Курс сфероидической геодезии. Изд. 2, перераб и доп. М.,Недра, 1979, 296 с., стр 191
+///             \n Источник - Морозов В.П. Курс сфероидической геодезии. Изд. 2, перераб и доп. М.,Недра, 1979, 296 с., стр 191
 /// \param[in] ellipsoid - земной эллипсоид
 /// \param[in] rangeUnit - единицы измерения дальности
 /// \param[in] angleUnit - единицы измерения углов
@@ -550,6 +550,9 @@ XYZ GEOtoECEF( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit, 
 ///             ось X - через пересечение гринвичского меридиана и экватора,
 ///             ось Y - через пересечение меридиана 90 [град] восточной долготы и экватора,
 ///             ось Z - через северный полюс
+///             \n Источник - Olson, D. K. (1996). Converting Earth-Centered, Earth-Fixed Coordinates to Geodetic
+///             Coordinates. IEEE Transactions on Aerospace and Electronic Systems, 32(1), 473–476.
+///             https://doi.org/10.1109/7.481290
 /// \param[in]  ellipsoid - земной эллипсоид
 /// \param[in]  rangeUnit - единицы измерения дальности
 /// \param[in]  angleUnit - единицы измерения углов
@@ -569,6 +572,9 @@ void ECEFtoGEO( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeUnit,
 ///             ось X - через пересечение гринвичского меридиана и экватора,
 ///             ось Y - через пересечение меридиана 90 [град] восточной долготы и экватора,
 ///             ось Z - через северный полюс
+///             \n Источник - Olson, D. K. (1996). Converting Earth-Centered, Earth-Fixed Coordinates to Geodetic
+///             Coordinates. IEEE Transactions on Aerospace and Electronic Systems, 32(1), 473–476.
+///             https://doi.org/10.1109/7.481290
 /// \param[in]  ellipsoid - земной эллипсоид
 /// \param[in]  rangeUnit - единицы измерения дальности
 /// \param[in]  angleUnit - единицы измерения углов
@@ -581,7 +587,7 @@ Geodetic ECEFtoGEO( const CEllipsoid &ellipsoid, const Units::TRangeUnit &rangeU
 //----------------------------------------------------------------------------------------------------------------------
 ///
 /// \brief Вычисление расстояния между точками в декартовых координатах
-/// \details Вычисляется как d = sqrt( (x1-x2)^2 + (y1-y2)^2 + (z1-z2)^2 )
+/// \details Вычисляется как \f$d = \sqrt{ (x_1-x_2)^2 + (y_1-y_2)^2 + (z_1-z_2)^2 } \f$
 /// \attention Единицы измерения выхода соответствуют единицам измерения входа
 /// \param[in]  x1 - координата первой точки по оси Х
 /// \param[in]  y1 - координата первой точки по оси Y
@@ -595,7 +601,7 @@ double XYZtoDistance( double x1, double y1, double z1, double x2, double y2, dou
 
 ///
 /// \brief Вычисление расстояния между точками в декартовых координатах
-/// \details Вычисляется как d = sqrt( (x1-x2)^2 + (y1-y2)^2 + (z1-z2)^2 )
+/// \details Вычисляется как \f$d = \sqrt{ (x_1-x_2)^2 + (y_1-y_2)^2 + (z_1-z_2)^2 } \f$
 /// \param[in] point1 - 1 точка
 /// \param[in] point2 - 2 точка
 /// \return Расстояние между двумя точками в декартовых координатах

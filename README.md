@@ -11,6 +11,8 @@
 * Conversion ECEF coordinates to AER and virsa-versa / Перевод ECEF координат в AER и обратно
 * Conversion ENU coordinates to AER and virsa-versa / Перевод ECEF координат в AER и обратно
 
+\f$d = \sqrt{ (x_1-x_2)^2 + (y_1-y_2)^2 + (z_1-z_2)^2 } \f$
+
 ## 2. References / Ссылки ##
 Papers / Статьи:
 
@@ -19,5 +21,5 @@ Sites / Сайты:
 Repositories / Репозитории:
 
 ## 3. Dependencies / Зависимости ##
-<br /> Armadillo for matrices, Boost for testing / Armadillo для работы с матрицами, Boost для тестирования.
+<br /> Boost for console commands parsing, testing / Boost для ввода команд с консоли, тестирования.
 
