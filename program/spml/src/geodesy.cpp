@@ -1739,6 +1739,49 @@ XYZ VectorFromTwoPoints( const XYZ &point1, const XYZ &point2 )
     VectorFromTwoPoints( point1.X, point1.Y, point1.Z, point2.X, point2.Y, point2.Z, result.X, result.Y, result.Z );
     return result;
 }
+//----------------------------------------------------------------------------------------------------------------------
+void ECEFtoECEF_3params( double xs, double ys, double zs, double dx, double dy, double dz, double &xt, double &yt, double &zt )
+{
+    xt = xs + dx;
+    yt = ys + dy;
+    zt = zs + dz;
+}
+
+void ECEFtoECEF_3params( TGeodeticDatum from, double xs, double ys, double zs, TGeodeticDatum to, double &xt, double &yt, double &zt )
+{
+    CShiftECEF_3 shift = GetShiftECEF_3( from, to );
+    xt = xs + shift.dX();
+    yt = ys + shift.dY();
+    zt = zs + shift.dZ();
+}
+
+void ECEFtoECEF_3params( const TGeodeticDatum &from, XYZ ecefs, const TGeodeticDatum &to, XYZ eceft )
+{
+    CShiftECEF_3 shift = GetShiftECEF_3( from, to );
+    eceft.X = ecefs.X + shift.dX();
+    eceft.Y = ecefs.Y + shift.dY();
+    eceft.Z = ecefs.Z + shift.dZ();
+}
+
+
+CShiftECEF_3 GetShiftECEF_3( const TGeodeticDatum &from, const TGeodeticDatum &to )
+{
+    if( from == TGeodeticDatum::GD_SK95 && to == TGeodeticDatum::GD_PZ90 ) {
+        return SK95toPZ90;
+    } if( from == TGeodeticDatum::GD_PZ90 && to == TGeodeticDatum::GD_SK95 ) {
+        return SK95toPZ90.Inverse();
+    } else {
+        assert( false );
+    }
+}
+//----------------------------------------------------------------------------------------------------------------------
+void ECEFtoECEF_7params( double xs, double ys, double zs, double dx, double dy, double dz,
+    double rx, double ry, double rz, double s, double &xt, double &yt, double &zt )
+{
+    xt = ( 1 + s ) * ( xs - rz * ys - ry * zs ) * xs + dx;
+    yt = ( 1 + s ) * ( -rz * xs + ys + rx * zs ) * ys + dy;
+    zt = ( 1 + s ) * ( ry * xs - rx * ys + zs ) * zs + dz;
+}
 
 }
 }

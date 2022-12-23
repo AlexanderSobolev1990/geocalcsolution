@@ -1067,6 +1067,245 @@ void VectorFromTwoPoints( double x1, double y1, double z1, double x2, double y2,
 ///
 XYZ VectorFromTwoPoints( const XYZ &point1, const XYZ &point2 );
 
+//----------------------------------------------------------------------------------------------------------------------
+
+struct CShiftECEF_3
+{
+public:
+    ///
+    /// \brief Название смещение
+    ///
+    std::string Name() const
+    {
+        return name;
+    }
+
+    ///
+    /// \brief Смещение по оси X
+    ///
+    double dX() const
+    {
+        return dx;
+    }
+
+    ///
+    /// \brief Смещение по оси X
+    ///
+    double dY() const
+    {
+        return dy;
+    }
+
+    ///
+    /// \brief Смещение по оси X
+    ///
+    double dZ() const
+    {
+        return dz;
+    }
+
+    CShiftECEF_3( std::string name_, double dx_, double dy_, double dz_ ) : dx{ dx_ }, dy{ dy_ }, dz{ dz_ }
+    {}
+
+    CShiftECEF_3 Inverse() const
+    {
+        return CShiftECEF_3( name, -dx, -dy, -dz );
+    }
+
+private:
+    std::string name;
+    double dx;
+    double dy;
+    double dz;
+};
+
+//----------------------------------------------------------------------------------------------------------------------
+
+struct CShiftECEF_7
+{
+public:
+    ///
+    /// \brief Название смещение
+    ///
+    std::string Name() const
+    {
+        return name;
+    }
+
+    ///
+    /// \brief Смещение по оси X
+    ///
+    double dX() const
+    {
+        return dx;
+    }
+
+    ///
+    /// \brief Смещение по оси X
+    ///
+    double dY() const
+    {
+        return dy;
+    }
+
+    ///
+    /// \brief Смещение по оси X
+    ///
+    double dZ() const
+    {
+        return dz;
+    }
+
+    ///
+    /// \brief Смещение по оси X
+    ///
+    double rX() const
+    {
+        return rx;
+    }
+
+    ///
+    /// \brief Смещение по оси X
+    ///
+    double rY() const
+    {
+        return ry;
+    }
+
+    ///
+    /// \brief Смещение по оси X
+    ///
+    double rZ() const
+    {
+        return rz;
+    }
+
+    ///
+    /// \brief S
+    ///
+    double S() const
+    {
+        return s;
+    }
+
+    CShiftECEF_7( std::string name_, double dx_, double dy_, double dz_, double rx_, double ry_, double rz_, double s_ ) :
+        dx{ dx_ }, dy{ dy_ }, dz{ dz_ }, rx{ rx_ }, ry{ ry_ }, rz{ rz_ }, s{ s_ }
+    {}
+
+    CShiftECEF_7 Inverse() const
+    {
+        return CShiftECEF_7( name, -dx, -dy, -dz, -rx, -ry, -rz, -s );
+    }
+
+private:
+    std::string name;
+    double dx;
+    double dy;
+    double dz;
+    double rx;
+    double ry;
+    double rz;
+    double s;
+};
+
+//----------------------------------------------------------------------------------------------------------------------
+///
+/// \brief Геодезический датум
+///
+enum TGeodeticDatum
+{
+    GD_WGS84,
+    GD_PZ90,
+    GD_SK95
+};
+
+//----------------------------------------------------------------------------------------------------------------------
+//                                             Параметры переводов
+
+static const CShiftECEF_3 SK95toPZ90( "SK95toPZ90", 25.90, -130.94, -81.76 ); // ГОСТ Р 51794-2001
+
+static const CShiftECEF_7 SK42toPZ9011( "SK42toPZ9011", 23.557, -140.844, -79.778,
+    -0.00230 / 3600.0 * SPML::Convert::DgToRdD,
+    -0.34646 / 3600.0 * SPML::Convert::DgToRdD,
+    -0.79421 / 3600.0 * SPML::Convert::DgToRdD,
+    -0.00000022800 ); // ГОСТ 32453-2017, Приложение А, подраздел А1
+
+static const CShiftECEF_7 SK42toPZ9011( "SK42toPZ9011", 24.457, -130.784, -81.538,
+    -0.00230 / 3600.0 * SPML::Convert::DgToRdD,
+     0.00354 / 3600.0 * SPML::Convert::DgToRdD,
+    -0.13421 / 3600.0 * SPML::Convert::DgToRdD,
+    -0.00000022800 ); // ГОСТ 32453-2017, Приложение А, подраздел А3
+
+static const CShiftECEF_7 GSK2011toPZ9011( "GSK2011toPZ9011", 0.0, 0.014, -0.008,
+    -0.000562 / 3600.0 * SPML::Convert::DgToRdD,
+     0.000019 / 3600.0 * SPML::Convert::DgToRdD,
+    -0.000053 / 3600.0 * SPML::Convert::DgToRdD,
+    -0.0000000006 ); // ГОСТ 32453-2017, Приложение А, подраздел А5
+
+static const CShiftECEF_7 PZ9002toPZ9011( "PZ9002toPZ9011", -0.373, 0.186, -0.202,
+    -0.00230 / 3600.0 * SPML::Convert::DgToRdD,
+     0.00354 / 3600.0 * SPML::Convert::DgToRdD,
+    -0.00421 / 3600.0 * SPML::Convert::DgToRdD,
+    -0.000000008 ); // ГОСТ 32453-2017, Приложение Б, подраздел Б1
+
+static const CShiftECEF_7 PZ90toPZ9011( "PZ90toPZ9011", -1.443, 0.156, 0.222,
+    -0.00230 / 3600.0 * SPML::Convert::DgToRdD,
+     0.00354 / 3600.0 * SPML::Convert::DgToRdD,
+    -0.134210 / 3600.0 * SPML::Convert::DgToRdD,
+    -0.000000228 ); // ГОСТ 32453-2017, Приложение В, подраздел В1
+
+static const CShiftECEF_7 WGS84toPZ9011( "WGS84toPZ9011", -0.013, 0.106, 0.022,
+    -0.00230 / 3600.0 * SPML::Convert::DgToRdD,
+     0.00354 / 3600.0 * SPML::Convert::DgToRdD,
+    -0.00421 / 3600.0 * SPML::Convert::DgToRdD,
+    -0.000000008 ); // ГОСТ 32453-2017, Приложение Г, подраздел Г1
+
+CShiftECEF_3 GetShiftECEF_3( const TGeodeticDatum &from, const TGeodeticDatum &to );
+CShiftECEF_7 GetShiftECEF_7( const TGeodeticDatum &from, const TGeodeticDatum &to );
+
+//----------------------------------------------------------------------------------------------------------------------
+///
+/// \brief 3-параметрическое преобразование декартовых геоцентрических координат (простой сдвиг)
+/// \details EPSG code: 9603
+/// \param[in]  xs - X координата в исходной СК
+/// \param[in]  ys - Y координата в исходной СК
+/// \param[in]  zs - Z координата в исходной СК
+/// \param[in]  dx - смещение по оси Х
+/// \param[in]  dy - смещение по оси Y
+/// \param[in]  dz - смещение по оси Z
+/// \param[out] xt - X координата в конечной СК
+/// \param[out] yt - Y координата в конечной СК
+/// \param[out] zt - Z координата в конечной СК
+///
+void ECEFtoECEF_3params( double xs, double ys, double zs, double dx, double dy, double dz, double &xt, double &yt, double &zt );
+
+void ECEFtoECEF_3params( const TGeodeticDatum &from, double xs, double ys, double zs,
+        const TGeodeticDatum &to, double &xt, double &yt, double &zt );
+
+void ECEFtoECEF_3params( const TGeodeticDatum &from, XYZ ecefs, const TGeodeticDatum &to, XYZ eceft );
+
+//----------------------------------------------------------------------------------------------------------------------
+///
+/// \brief 7-параметрическое преобразование декартовых геоцентрических координат (Бурса-Вольфа)
+/// \details EPSG code: 9606
+/// \param[in]  xs - X координата в исходной СК
+/// \param[in]  ys - Y координата в исходной СК
+/// \param[in]  zs - Z координата в исходной СК
+/// \param[in]  dx -
+/// \param[in]  dy -
+/// \param[in]  dz -
+/// \param[in]  rx -
+/// \param[in]  ry -
+/// \param[in]  rz -
+/// \param[in]   s -
+/// \param[out] xt - X координата в конечной СК
+/// \param[out] yt - Y координата в конечной СК
+/// \param[out] zt - Z координата в конечной СК
+///
+void ECEFtoECEF_7params( double xs, double ys, double zs, double dx, double dy, double dz,
+    double rx, double ry, double rz, double s, double &xt, double &yt, double &zt );
+
+
 } // end namespace SPML
 } // end namespace Geodesy
 #endif // SPML_GEODESY_H
