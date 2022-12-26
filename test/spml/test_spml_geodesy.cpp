@@ -489,5 +489,50 @@ BOOST_AUTO_TEST_CASE( test_AERtoENU )
 
 BOOST_AUTO_TEST_SUITE_END()
 //----------------------------------------------------------------------------------------------------------------------
+BOOST_AUTO_TEST_SUITE( test_suite_MolodenskyShort )
+
+BOOST_AUTO_TEST_CASE( test_MolodenskyShort_1 )
+{
+    SPML::Geodesy::CEllipsoid el0 = SPML::Geodesy::Ellipsoids::WGS84();
+    SPML::Geodesy::CEllipsoid el1 = SPML::Geodesy::Ellipsoids::PZ90();
+    const SPML::Units::TAngleUnit unitAngle = SPML::Units::TAngleUnit::AU_Degree;
+    const SPML::Units::TRangeUnit unitRange = SPML::Units::TRangeUnit::RU_Meter;
+    double lat0 = 55.0, lon0 = 35.0, h0 = 0.0;
+    double dx = -0.013, dy = 0.106, dz = 0.022;
+    double lat1, lon1, h1;
+
+    SPML::Geodesy::GEOtoGeoMolodenskyAbridged( el0, unitRange, unitAngle, lat0, lon0, h0, dx, dy, dz, el1, lat1, lon1, h1 );
+
+    int abc = 0;
+}
+
+BOOST_AUTO_TEST_CASE( test_MolodenskyFull_1 )
+{
+    SPML::Geodesy::CEllipsoid el0 = SPML::Geodesy::Ellipsoids::WGS84();
+    SPML::Geodesy::CEllipsoid el1 = SPML::Geodesy::Ellipsoids::PZ90();
+    const SPML::Units::TAngleUnit unitAngle = SPML::Units::TAngleUnit::AU_Degree;
+    const SPML::Units::TRangeUnit unitRange = SPML::Units::TRangeUnit::RU_Meter;
+    double lat0 = 55.0, lon0 = 35.0, h0 = 0.0;
+    double dx = -0.013, dy = 0.106, dz = 0.022, rx = -0.00230, ry = 0.00354, rz = -0.00421, s = -0.000000008; // WGS84toPZ9011
+    double lat1, lon1, h1;
+
+    SPML::Geodesy::GEOtoGeoMolodenskyFull( el0, unitRange, unitAngle, lat0, lon0, h0,
+        dx, dy, dz, rx, ry, rz, s, el1, lat1, lon1, h1 );
+
+    double x, y, z, x1, y1, z1;
+    SPML::Geodesy::GEOtoECEF( el0, unitRange, unitAngle, lat0, lon0, h0, x, y, z );
+    SPML::Geodesy::ECEFtoECEF_7params( SPML::Geodesy::TGeodeticDatum::GD_WGS84, x, y, z,
+        SPML::Geodesy::TGeodeticDatum::GD_PZ9011, x1, y1, z1 );
+    double lat2, lon2, h2;
+    SPML::Geodesy::ECEFtoGEO( el1, unitRange, unitAngle, x1, y1, z1, lat2, lon2, h2 );
+
+    double lat3, lon3, h3;
+    SPML::Geodesy::GEOtoGeoMolodenskyAbridged( el0, unitRange, unitAngle, lat0, lon0, h0, dx, dy, dz, el1, lat3, lon3, h3 );
+
+    int abc1 = 0;
+}
+
+BOOST_AUTO_TEST_SUITE_END()
+//----------------------------------------------------------------------------------------------------------------------
 
 

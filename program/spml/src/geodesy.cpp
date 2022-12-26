@@ -1755,7 +1755,7 @@ void ECEFtoECEF_3params( TGeodeticDatum from, double xs, double ys, double zs, T
     zt = zs + shift.dZ();
 }
 
-void ECEFtoECEF_3params( const TGeodeticDatum &from, XYZ ecefs, const TGeodeticDatum &to, XYZ eceft )
+void ECEFtoECEF_3params( const TGeodeticDatum &from, XYZ ecefs, const TGeodeticDatum &to, XYZ &eceft )
 {
     CShiftECEF_3 shift = GetShiftECEF_3( from, to );
     eceft.X = ecefs.X + shift.dX();
@@ -1763,7 +1763,7 @@ void ECEFtoECEF_3params( const TGeodeticDatum &from, XYZ ecefs, const TGeodeticD
     eceft.Z = ecefs.Z + shift.dZ();
 }
 
-
+//----------------------------------------------------------------------------------------------------------------------
 CShiftECEF_3 GetShiftECEF_3( const TGeodeticDatum &from, const TGeodeticDatum &to )
 {
     if( from == TGeodeticDatum::GD_SK95 && to == TGeodeticDatum::GD_PZ90 ) {
@@ -1774,13 +1774,254 @@ CShiftECEF_3 GetShiftECEF_3( const TGeodeticDatum &from, const TGeodeticDatum &t
         assert( false );
     }
 }
+
+CShiftECEF_7 GetShiftECEF_7( const TGeodeticDatum &from, const TGeodeticDatum &to )
+{
+    if( from == TGeodeticDatum::GD_SK42 && to == TGeodeticDatum::GD_PZ9011 ) {
+        return SK42toPZ9011;
+    } else if( from == TGeodeticDatum::GD_PZ9011 && to == TGeodeticDatum::GD_SK42 ) {
+        return SK42toPZ9011.Inverse();
+    } else if( from == TGeodeticDatum::GD_SK95 && to == TGeodeticDatum::GD_PZ9011 ) {
+        return SK95toPZ9011;
+    } else if( from == TGeodeticDatum::GD_PZ9011 && to == TGeodeticDatum::GD_SK95 ) {
+        return SK95toPZ9011.Inverse();
+    } else if( from == TGeodeticDatum::GD_GSK2011 && to == TGeodeticDatum::GD_PZ9011 ) {
+        return GSK2011toPZ9011;
+    } else if( from == TGeodeticDatum::GD_PZ9011 && to == TGeodeticDatum::GD_GSK2011 ) {
+        return GSK2011toPZ9011.Inverse();
+    } else if( from == TGeodeticDatum::GD_PZ9002 && to == TGeodeticDatum::GD_PZ9011 ) {
+        return PZ9002toPZ9011;
+    } else if( from == TGeodeticDatum::GD_PZ9011 && to == TGeodeticDatum::GD_PZ9002 ) {
+        return PZ9002toPZ9011.Inverse();
+    } else if( from == TGeodeticDatum::GD_PZ90 && to == TGeodeticDatum::GD_PZ9011 ) {
+        return PZ90toPZ9011;
+    } else if( from == TGeodeticDatum::GD_PZ9011 && to == TGeodeticDatum::GD_PZ90 ) {
+        return PZ90toPZ9011.Inverse();
+    } else if( from == TGeodeticDatum::GD_WGS84 && to == TGeodeticDatum::GD_PZ9011 ) {
+        return WGS84toPZ9011;
+    } else if( from == TGeodeticDatum::GD_PZ9011 && to == TGeodeticDatum::GD_WGS84 ) {
+        return WGS84toPZ9011.Inverse();
+    } else if( from == TGeodeticDatum::GD_PZ9011 && to == TGeodeticDatum::GD_ITRF2008 ) {
+        return PZ9011toITRF2008;
+    } else if( from == TGeodeticDatum::GD_ITRF2008 && to == TGeodeticDatum::GD_PZ9011 ) {
+        return PZ9011toITRF2008.Inverse();
+    } else {
+        assert( false );
+    }
+}
 //----------------------------------------------------------------------------------------------------------------------
 void ECEFtoECEF_7params( double xs, double ys, double zs, double dx, double dy, double dz,
     double rx, double ry, double rz, double s, double &xt, double &yt, double &zt )
 {
-    xt = ( 1 + s ) * ( xs - rz * ys - ry * zs ) * xs + dx;
-    yt = ( 1 + s ) * ( -rz * xs + ys + rx * zs ) * ys + dy;
-    zt = ( 1 + s ) * ( ry * xs - rx * ys + zs ) * zs + dz;
+    xt = ( 1.0 + s ) * ( xs - rz * ys - ry * zs ) + dx;
+    yt = ( 1.0 + s ) * ( -rz * xs + ys + rx * zs ) + dy;
+    zt = ( 1.0 + s ) * ( ry * xs - rx * ys + zs ) + dz;
+}
+
+void ECEFtoECEF_7params( const TGeodeticDatum &from, double xs, double ys, double zs,
+    const TGeodeticDatum &to, double &xt, double &yt, double &zt )
+{
+    CShiftECEF_7 shift = GetShiftECEF_7( from, to );
+    xt = ( 1.0 + shift.S() ) * ( xs - shift.rZ() * ys - shift.rY() * zs ) + shift.dX();
+    yt = ( 1.0 + shift.S() ) * ( -shift.rZ() * xs + ys + shift.rX() * zs ) + shift.dY();
+    zt = ( 1.0 + shift.S() ) * ( shift.rY() * xs - shift.rX() * ys + zs ) + shift.dZ();
+};
+
+void ECEFtoECEF_7params( const TGeodeticDatum &from, XYZ ecefs, const TGeodeticDatum &to, XYZ &eceft )
+{
+    CShiftECEF_7 shift = GetShiftECEF_7( from, to );
+    eceft.X = ( 1.0 + shift.S() ) * ( ecefs.X - shift.rZ() * ecefs.Y - shift.rY() * ecefs.Z ) + shift.dX();
+    eceft.Y = ( 1.0 + shift.S() ) * ( -shift.rZ() * ecefs.X + ecefs.Y + shift.rX() * ecefs.Y ) + shift.dY();
+    eceft.Z = ( 1.0 + shift.S() ) * ( shift.rY() * ecefs.X - shift.rX() * ecefs.Y + ecefs.Z ) + shift.dZ();
+}
+//----------------------------------------------------------------------------------------------------------------------
+
+void GEOtoGeoMolodenskyFull( const CEllipsoid &el0, const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
+    double lat0, double lon0, double h0, double dx, double dy, double dz, double rx, double ry, double rz, double s,
+    const CEllipsoid &el1, double &lat1, double &lon1, double &h1 )
+{
+    // по умолчанию Метры-Радианы:
+    double _lat0 = lat0;
+    double _lon0 = lon0;
+    double _h0 = h0;
+
+    // При необходимости переведем в Радианы-Метры:
+    switch( angleUnit ) {
+        case( Units::TAngleUnit::AU_Radian ): break; // Уже переведено
+        case( Units::TAngleUnit::AU_Degree ):
+        {
+            _lat0 *= Convert::DgToRdD;
+            _lon0 *= Convert::DgToRdD;
+            break;
+        }
+        default:
+            assert( false );
+    }
+    switch( rangeUnit ) {
+        case( Units::TRangeUnit::RU_Meter ): break; // Уже переведено
+        case( Units::TRangeUnit::RU_Kilometer):
+        {
+            _h0 *= 1000.0;
+            break;
+        }
+        default:
+            assert( false );
+    }
+
+    double as = el0.A();
+    double at = el1.A();
+    double a = ( as + at ) * 0.5;
+
+    double fs = 1.0 / el0.Invf();
+    double ft = 1.0 / el1.Invf();
+
+    double da = at - as;
+    double df = ft - fs;
+
+    double ess = el0.EccentricityFirstSquared();
+    double est = el1.EccentricityFirstSquared();
+    double e2 = ( ess + est ) * 0.5;
+    double de2 = est - ess;
+
+    double sinB = std::sin( _lat0 );
+    double cosB = std::cos( _lat0 );
+    double cos2B = std::cos( 2.0 * _lat0 );
+    double tanB = std::tan( _lat0 );
+    double sinL = std::sin( _lon0 );
+    double cosL = std::cos( _lon0 );
+
+    const double ro = 180 * 60 * 60 / SPML::Consts::PI_D; // Число угловых секунд в радиане
+    double tmp = 1.0 - ess * sinB * sinB;
+    double M = el0.A() * ( 1.0 - ess ) / pow( tmp, 1.5 );
+    double N = el0.A() / std::sqrt( tmp );
+
+    // Full Molodensky formulas
+    double dlat = ( ( N / a ) * e2 * sinB * cosB * da + ( ( N * N ) / ( a * a ) + 1.0 ) * N * sinB * cosB * de2 / 2.0 -
+        ( dx * cosL + dy * sinL ) * sinB + dz * cosB ) * ro / ( M + _h0 ) -
+        rx * sinL * ( 1.0 + e2 * cos2B ) + ry * cosL * ( 1.0  + e2 * cos2B ) -
+        ro * s * e2 * sinB * cosB;
+    double dlon = ( -dx * sinL + dy * cosL ) * ro / ( ( N + _h0 ) * cosB ) +
+        tanB * ( 1.0 - e2 ) * ( rx * cosL + ry * sinL ) - rz;
+    double dh = ( -a / N ) * da + N * sinB * sinB * de2 / 2.0 + ( dx * cosL + dy * sinL ) * cosB + dz * sinB -
+        N * e2 * sinB * cosB * ( rx / ro * sinL - ry / ro * cosL ) + ( a * a / N  + _h0 ) * s;
+
+
+    lat1 = _lat0 + dlat / 3600.0 * SPML::Convert::DgToRdD;
+    lon1 = _lon0 + dlon / 3600.0 * SPML::Convert::DgToRdD;
+    h1 = _h0 + dh;
+
+    // Проверим, нужен ли перевод:
+    switch( angleUnit ) {
+        case( Units::TAngleUnit::AU_Radian ): break; // Уже переведено
+        case( Units::TAngleUnit::AU_Degree ):
+        {
+            lat1 *= Convert::RdToDgD;
+            lon1 *= Convert::RdToDgD;
+            break;
+        }
+        default:
+            assert( false );
+    }
+    switch( rangeUnit ) {
+        case( Units::TRangeUnit::RU_Meter ): break; // Уже переведено
+        case( Units::TRangeUnit::RU_Kilometer):
+        {
+            h1 *= 0.001;
+            break;
+        }
+        default:
+            assert( false );
+    }
+}
+
+
+void GEOtoGeoMolodenskyAbridged( const CEllipsoid &el0, const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
+    double lat0, double lon0, double h0, double dx, double dy, double dz,
+    const CEllipsoid &el1, double &lat1, double &lon1, double &h1 )
+{
+    // по умолчанию Метры-Радианы:
+    double _lat0 = lat0;
+    double _lon0 = lon0;
+    double _h0 = h0;
+
+    // При необходимости переведем в Радианы-Метры:
+    switch( angleUnit ) {
+        case( Units::TAngleUnit::AU_Radian ): break; // Уже переведено
+        case( Units::TAngleUnit::AU_Degree ):
+        {
+            _lat0 *= Convert::DgToRdD;
+            _lon0 *= Convert::DgToRdD;
+            break;
+        }
+        default:
+            assert( false );
+    }
+    switch( rangeUnit ) {
+        case( Units::TRangeUnit::RU_Meter ): break; // Уже переведено
+        case( Units::TRangeUnit::RU_Kilometer):
+        {
+            _h0 *= 1000.0;
+            break;
+        }
+        default:
+            assert( false );
+    }
+
+    double as = el0.A();
+    double at = el1.A();
+
+    double fs = 1.0 / el0.Invf();
+    double ft = 1.0 / el1.Invf();
+
+    double da = at - as;
+    double df = ft - fs;
+
+    double sinPhi = std::sin( _lat0 );
+    double cosPhi = std::cos( _lat0 );
+    double sinLam = std::sin( _lon0 );
+    double cosLam = std::cos( _lon0 );
+
+    double tmp = 1.0 - el0.EccentricityFirstSquared() * sinPhi * sinPhi;
+    double ps = el0.A() * ( 1.0 - el0.EccentricityFirstSquared() ) / pow( tmp, 1.5 );
+    double vs = el0.A() / std::sqrt( tmp );
+
+//    double sin1sec = std::sin( 1.0 / 3600.0 * SPML::Convert::DgToRdD ); // sin of 1 sec
+
+    // Short Molodensky formulas
+//    double dlat = ( -dx * sinPhi * cosLam - dy * sinPhi * sinLam + dz * cosPhi + ( as * df + fs * da ) *
+//        std::sin( 2.0 * _lat0 ) ) / ( ps * sin1sec );
+//    double dlon = ( -dx * sinLam + dy * cosLam ) / ( vs * cosPhi * sin1sec );
+    double dlat = ( -dx * sinPhi * cosLam - dy * sinPhi * sinLam + dz * cosPhi + ( as * df + fs * da ) *
+        std::sin( 2.0 * _lat0 ) ) / ps;
+    double dlon = ( -dx * sinLam + dy * cosLam ) / ( vs * cosPhi );
+    double dh = dx * cosPhi * cosLam + dy * cosPhi * sinLam + dz * sinPhi + ( as * df + fs * da ) * sinPhi * sinPhi - da;
+
+    lat1 = _lat0 + dlat;
+    lon1 = _lon0 + dlon;
+    h1 = _h0 + dh;
+
+    // Проверим, нужен ли перевод:
+    switch( angleUnit ) {
+        case( Units::TAngleUnit::AU_Radian ): break; // Уже переведено
+        case( Units::TAngleUnit::AU_Degree ):
+        {
+            lat1 *= Convert::RdToDgD;
+            lon1 *= Convert::RdToDgD;
+            break;
+        }
+        default:
+            assert( false );
+    }
+    switch( rangeUnit ) {
+        case( Units::TRangeUnit::RU_Meter ): break; // Уже переведено
+        case( Units::TRangeUnit::RU_Kilometer):
+        {
+            h1 *= 0.001;
+            break;
+        }
+        default:
+            assert( false );
+    }
 }
 
 }
