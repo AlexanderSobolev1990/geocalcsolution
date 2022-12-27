@@ -1219,16 +1219,16 @@ private:
 ///
 /// \brief Геодезический датум
 ///
-enum TGeodeticDatum
+enum TGeodeticDatum : int
 {
-    GD_WGS84,
-    GD_PZ90,
-    GD_PZ9002,
-    GD_PZ9011,
-    GD_SK95,
-    GD_SK42,
-    GD_GSK2011,
-    GD_ITRF2008
+    GD_WGS84 = 0,
+    GD_PZ90 = 1,
+    GD_PZ9002 = 2,
+    GD_PZ9011 = 3,
+    GD_SK95 = 4,
+    GD_SK42 = 5,
+    GD_GSK2011 = 6,
+    GD_ITRF2008 = 7
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -1452,11 +1452,31 @@ void GEOtoGeoMolodenskyFull( const CEllipsoid &el0, const Units::TRangeUnit &ran
 //                       Геодезические координаты в плоские прямоугольные Гаусса-Крюгера
 //----------------------------------------------------------------------------------------------------------------------
 
-void GEOtoGaussKruger( double lat, double lon, int &n, int &x, int &y );
+///
+/// \brief Перевод геодезических координат из СК-42 (на эллипсоиде Красовского) в X-Y координаты Гаусса-Крюгера
+/// \param[in]  rangeUnit - единицы измерения дальности
+/// \param[in]  angleUnit - единицы измерения углов
+/// \param[in]  lat - широта точки, градусы
+/// \param[in]  lon - долгота точки, градусы
+/// \param[out] n   - номер 6-градусной зоны (1..60)
+/// \param[out] x   - вертикальная координата, метры
+/// \param[out] y   - горизонтальная координата, метры
+///
+void SK42toGaussKruger( const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
+    double lat, double lon, int &n, int &x, int &y );
 
-void GaussKrugerToGEO( int x, int y, double &lat, double &lon );
-
-
+///
+/// \brief Перевод X-Y координат Гаусса-Крюгера в геодезических координат из СК-42 (на эллипсоиде Красовского)
+/// \param[in]  rangeUnit - единицы измерения дальности
+/// \param[in]  angleUnit - единицы измерения углов
+/// \param[in]  x   - вертикальная координата, метры
+/// \param[in]  y   - горизонтальная координата, метры
+/// \param[out] lat - широта точки, градусы
+/// \param[out] lon - долгота точки, градусы
+///
+void GaussKrugerToSK42( const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
+    int x, int y, double &lat, double &lon );
+//----------------------------------------------------------------------------------------------------------------------
 } // end namespace SPML
 } // end namespace Geodesy
 #endif // SPML_GEODESY_H

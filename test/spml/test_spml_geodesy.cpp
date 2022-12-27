@@ -536,35 +536,34 @@ BOOST_AUTO_TEST_SUITE_END()
 //----------------------------------------------------------------------------------------------------------------------
 BOOST_AUTO_TEST_SUITE( test_suite_GaussKruger )
 
-BOOST_AUTO_TEST_CASE( test_GaussKruger_1 )
+const SPML::Units::TAngleUnit unitAngle = SPML::Units::TAngleUnit::AU_Degree;
+const SPML::Units::TRangeUnit unitRange = SPML::Units::TRangeUnit::RU_Meter;
+
+// Центр листа N-37-004 (Москва)
+double lat = 55.0 + 50.0 / 60.0;
+double lon = 37.0 + 45.0 / 60.0;
+int n = 37;
+int x = 6190821;
+int y = 7421674;
+
+double eps = 1.0e-4;
+
+BOOST_AUTO_TEST_CASE( test_toGaussKruger_1 )
 {
-//    double lat1 = 55.819;
-//    double lon1 = 37.611;
-//    double h1 = 0.0;
-
-//    SPML::Geodesy::CEllipsoid el0 = SPML::Geodesy::Ellipsoids::WGS84();
-//    SPML::Geodesy::CEllipsoid el1 = SPML::Geodesy::Ellipsoids::Krassowsky1940();
-//    const SPML::Units::TAngleUnit unitAngle = SPML::Units::TAngleUnit::AU_Degree;
-//    const SPML::Units::TRangeUnit unitRange = SPML::Units::TRangeUnit::RU_Meter;
-//    double x1, y1, z1, x2, y2, z2;
-//    SPML::Geodesy::GEOtoECEF( el0, unitRange, unitAngle, lat1, lon1, h1, x1, y1, z1 );
-//    SPML::Geodesy::ECEFtoECEF_7params( SPML::Geodesy::TGeodeticDatum::GD_WGS84, x1, y1, z1,
-//        SPML::Geodesy::TGeodeticDatum::GD_SK42, x2, y2, z2 );
-//    double lat2, lon2, h2;
-//    SPML::Geodesy::ECEFtoGEO( el1, unitRange, unitAngle, x2, y2, z2, lat2, lon2, h2 );
-
-    double lat2 = 55.0 + 50.0 / 60.0;
-    double lon2 = 37.0 + 45.0 / 60.0;
-    int n_sk42, x_sk42, y_sk42;
-
-    SPML::Geodesy::GEOtoGaussKruger( lat2, lon2, n_sk42, x_sk42, y_sk42 );
-
-    double lat3, lon3;
-    SPML::Geodesy::GaussKrugerToGEO( x_sk42, y_sk42, lat3, lon3 );
-
-    int abc1 = 0;
+    int n_, x_, y_;
+    SPML::Geodesy::SK42toGaussKruger( unitRange, unitAngle, lat, lon, n_, x_, y_ );
+    BOOST_CHECK_EQUAL( n, n_ );
+    BOOST_CHECK_CLOSE_FRACTION( static_cast<double>( x ), static_cast<double>( x_ ), eps );
+    BOOST_CHECK_CLOSE_FRACTION( static_cast<double>( y ), static_cast<double>( y_ ), eps );
 }
 
+BOOST_AUTO_TEST_CASE( test_fromGaussKruger_1 )
+{
+    double lat_, lon_;
+    SPML::Geodesy::GaussKrugerToSK42( unitRange, unitAngle, x, y, lat_, lon_ );
+    BOOST_CHECK_CLOSE_FRACTION( lat, lat_, eps );
+    BOOST_CHECK_CLOSE_FRACTION( lon, lon_, eps );
+}
 
 BOOST_AUTO_TEST_SUITE_END()
 //----------------------------------------------------------------------------------------------------------------------

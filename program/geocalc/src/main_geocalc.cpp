@@ -14,6 +14,7 @@
 #include <iostream>
 #include <iomanip>
 #include <vector>
+#include <algorithm>
 #include <boost/program_options.hpp>
 
 // SPML includes:
@@ -26,7 +27,7 @@
 ///
 static std::string GetVersion()
 {
-    return "GEOCALC_22.12.2022_v01_Develop";
+    return "GEOCALC_27.12.2022_v01_Develop";
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -51,12 +52,10 @@ struct CCoordCalcSettings
     int Precision;                          ///< Число цифр после запятой при печати в консоль результата
     SPML::Units::TAngleUnit AngleUnit;    ///< Единицы измерения углов
     SPML::Units::TRangeUnit RangeUnit;    ///< Единицы измерения дальностей
-//    SPML::Units::TAngleUnit AngleUnitIn;    ///< Единицы измерения углов (входные данные)
-//    SPML::Units::TRangeUnit RangeUnitIn;    ///< Единицы измерения дальностей (входные данные)
-//    SPML::Units::TAngleUnit AngleUnitOut;   ///< Единицы измерения углов результата (выходные данные)
-//    SPML::Units::TRangeUnit RangeUnitOut;   ///< Единицы измерения дальностей результата (выходные данные)
     int EllipsoidNumber;                    ///< Эллипсоид на котором решаем геодезические задачи
     std::vector<double> Input;              ///< Входной массив
+    std::string From;
+    std::string To;
 
     ///
     /// \brief Конструктор по умолчанию
@@ -66,14 +65,39 @@ struct CCoordCalcSettings
         Precision = 6;
         AngleUnit = SPML::Units::TAngleUnit::AU_Degree;
         RangeUnit = SPML::Units::TRangeUnit::RU_Kilometer;
-//        AngleUnitIn = SPML::Units::TAngleUnit::AU_Degree;
-//        RangeUnitIn = SPML::Units::TRangeUnit::RU_Kilometer;
-//        AngleUnitOut = SPML::Units::TAngleUnit::AU_Degree;
-//        RangeUnitOut = SPML::Units::TRangeUnit::RU_Kilometer;
         EllipsoidNumber = 0;
         Input.clear();
+        From.clear();
+        To.clear();
     }
 };
+
+//----------------------------------------------------------------------------------------------------------------------
+
+int DetermineGeodeticDatum( std::string str, SPML::Geodesy::TGeodeticDatum &gd )
+{
+    if( str == "wgs84" ) {
+        gd = SPML::Geodesy::TGeodeticDatum::GD_WGS84;
+    } else if( str == "pz90" ) {
+        gd = SPML::Geodesy::TGeodeticDatum::GD_PZ90;
+    } else if( str == "pz9002" ) {
+        gd = SPML::Geodesy::TGeodeticDatum::GD_PZ9002;
+    } else if( str == "pz9011" ) {
+        gd = SPML::Geodesy::TGeodeticDatum::GD_PZ9011;
+    } else if( str == "sk95" ) {
+        gd = SPML::Geodesy::TGeodeticDatum::GD_SK95;
+    } else if( str == "sk42" ) {
+        gd = SPML::Geodesy::TGeodeticDatum::GD_SK42;
+    } else if( str == "gsk2011" ) {
+        gd = SPML::Geodesy::TGeodeticDatum::GD_GSK2011;
+    } else if( str == "itrf2008" ) {
+        gd = SPML::Geodesy::TGeodeticDatum::GD_ITRF2008;
+    } else {
+        std::cout << "Неверный ввод, смотри --help/Wrong input, read --help" << std::endl;
+        return EXIT_FAILURE;
+    }
+    return EXIT_SUCCESS;
+}
 
 //----------------------------------------------------------------------------------------------------------------------
 ///
@@ -106,57 +130,65 @@ int main( int argc, char *argv[] )
     ( "km", "Вход в километрах (по умолчанию)/Input in kilometers (default)" )
     ( "me", "Вход в метрах/Input in meters" )
     // Единицы выхода дальности/углов
-//    ( "outdeg", "Выход в градусах (по умолчанию)/Output in degrees (default)" )
-//    ( "outrad", "Выход в радианах/Output in radians" )
-//    ( "outkm", "Выход в километрах (по умолчанию)/Output in kilometers (default)" )
-//    ( "outmeter", "Выход в метрах/Output in meters" )
     // На каком эллипсоиде считать
-//    ( "el", po::value<int>( &settings.EllipsoidNumber )->default_value( settings.EllipsoidNumber ),
-//        ellipsoidsStringAll.c_str() )
-    ( "el", po::value<std::string>()->default_value( "wgs84" ), "Доступыне эллипсоиды/Avaliable ellipsoids: wgs84, grs80, pz90, krasovsky1940, sphere6371, sphere6378" )
+    ( "el", po::value<std::string>()->default_value( "wgs84" ), "Доступные эллипсоиды/Avaliable ellipsoids: wgs84, grs80, pz90, krasovsky1940, sphere6371, sphere6378" )
     ( "els", "Показать список доступных эллипсоидов и их параметры" )
     // Проверка
     ( "check", "Проверка решением обратной задачи/Check by solving inverse task" )    
     // Задачи:
+    //------------------------------------------------------------------------------------------------------------------
     ( "geo2rad", po::value<std::vector<double>>( &settings.Input )->multitoken(),
         "args: LatStart LonStart LatEnd LonEnd" )
     ( "rad2geo", po::value<std::vector<double>>( &settings.Input )->multitoken(),
         "args: LatStart LonStart Range Azimuth" )
-    //
+    //------------------------------------------------------------------------------------------------------------------
     ( "geo2ecef", po::value<std::vector<double>>( &settings.Input )->multitoken(),
         "args: Lat Lon Height" )
     ( "ecef2geo", po::value<std::vector<double>>( &settings.Input )->multitoken(),
         "args: X Y Z" )
-    //
+    //------------------------------------------------------------------------------------------------------------------
     ( "ecefdist", po::value<std::vector<double>>( &settings.Input )->multitoken(),
         "args: X1 Y1 Z1 X2 Y2 Z2" )
     ( "ecefoffset", po::value<std::vector<double>>( &settings.Input )->multitoken(),
         "args: X1 Y1 Z1 X2 Y2 Z2" )
-    //
+    //------------------------------------------------------------------------------------------------------------------
     ( "ecef2enu", po::value<std::vector<double>>( &settings.Input )->multitoken(),
         "args: X Y Z Lat0 Lon0" )
     ( "enu2ecef", po::value<std::vector<double>>( &settings.Input )->multitoken(),
         "args: E N U Lat0 Lon0" )
-    //
+    //------------------------------------------------------------------------------------------------------------------
     ( "enu2aer", po::value<std::vector<double>>( &settings.Input )->multitoken(),
         "args: E N U" )
     ( "aer2enu", po::value<std::vector<double>>( &settings.Input )->multitoken(),
         "args: A E R" )
-    //
+    //------------------------------------------------------------------------------------------------------------------
     ( "geo2enu", po::value<std::vector<double>>( &settings.Input )->multitoken(),
         "args: Lat Lon Height Lat0 Lon0 Height0" )
     ( "enu2geo", po::value<std::vector<double>>( &settings.Input )->multitoken(),
         "args: E N U Lat0 Lon0 Height0" )
-    //
+    //------------------------------------------------------------------------------------------------------------------
     ( "geo2aer", po::value<std::vector<double>>( &settings.Input )->multitoken(),
         "args: Lat Lon Height Lat0 Lon0 Height0" )
     ( "aer2geo", po::value<std::vector<double>>( &settings.Input )->multitoken(),
         "args: A E R Lat0 Lon0 Height0" )
-    //
+    //------------------------------------------------------------------------------------------------------------------
     ( "ecef2aer", po::value<std::vector<double>>( &settings.Input )->multitoken(),
         "args: X Y Z Lat0 Lon0 Height0" )
     ( "aer2ecef", po::value<std::vector<double>>( &settings.Input )->multitoken(),
         "args: A E R Lat0 Lon0 Height0" )
+    //------------------------------------------------------------------------------------------------------------------
+    ( "sk42toGK", po::value<std::vector<double>>( &settings.Input )->multitoken(),
+        "SK-42 to Gauss-Kruger, args: Lat Lon" )
+    ( "GKtosk42", po::value<std::vector<double>>( &settings.Input )->multitoken(),
+        "Gauss-Kruger to SK-42, args: X Y" )
+    //------------------------------------------------------------------------------------------------------------------
+    ( "bw", po::value<std::vector<double>>( &settings.Input )->multitoken(),
+        "Bursa-Wolf conversion (only meters in/out) (needs --from and --to keys), args: X Y Z" )
+    ( "from", po::value<std::string>( &settings.From ),
+        "see supported converions --list" )
+    ( "to", po::value<std::string>( &settings.To ),
+        "see supported converions --list" )
+    ( "list", "show list of supported Bursa-Wolf conversions" )
     ;
     po::options_description cla; // Аргументы командной строки (сommand line arguments)
     cla.add( desc );
@@ -187,12 +219,6 @@ int main( int argc, char *argv[] )
     if( vm.count( "rad" ) ) {
         settings.AngleUnit = SPML::Units::AU_Radian;
     }
-//    if( vm.count( "outkm" ) ) {
-//        settings.AngleUnitOut = SPML::Units::AU_Degree;
-//    }
-//    if( vm.count( "outmeter" ) ) {
-//        settings.AngleUnitOut = SPML::Units::AU_Radian;
-//    }
     //------------------------------------------------------------------------------------------------------------------
     // Единицы расстояния
     if( vm.count( "km" ) ) {
@@ -201,12 +227,6 @@ int main( int argc, char *argv[] )
     if( vm.count( "me" ) ) {
         settings.RangeUnit = SPML::Units::RU_Meter;
     }
-//    if( vm.count( "outkm" ) ) {
-//        settings.RangeUnitOut = SPML::Units::RU_Kilometer;
-//    }
-//    if( vm.count( "outmeter" ) ) {
-//        settings.RangeUnitOut = SPML::Units::RU_Meter;
-//    }
     //------------------------------------------------------------------------------------------------------------------
     // Названия единиц расстояния/углов для вывода на печать
     std::string outrange;
@@ -247,11 +267,6 @@ int main( int argc, char *argv[] )
             std::cout << "Неверный ввод, смотри --help/Wrong input, read --help" << std::endl;
             return EXIT_FAILURE;
         }
-//        settings.EllipsoidNumber = vm["el"].as<int>();
-//        if( settings.EllipsoidNumber < 0 || settings.EllipsoidNumber > ( ellipsoids.size() - 1 ) ) {
-//            std::cout << "Неверный ввод, смотри --help/Wrong input, read --help" << std::endl;
-//            return EXIT_FAILURE;
-//        }
     }
     if( vm.count( "els" ) ) {
         std::string ellipsoidsString;
@@ -544,7 +559,7 @@ int main( int argc, char *argv[] )
         double a, e, r;
         SPML::Geodesy::ENUtoAER( settings.RangeUnit, settings.AngleUnit,
             settings.Input[0], settings.Input[1], settings.Input[2], a, e, r );
-        std::string result = "Azimuth[" + outangle + "] Elevation[" + outangle + "] slantRange[" + outrange + "]:\n" +
+        std::string result = "Azimuth[" + outangle + "]. Elevation[" + outangle + "] slantRange[" + outrange + "]:\n" +
             to_string_with_precision( a, settings.Precision ) + " " +
             to_string_with_precision( e, settings.Precision ) + " " +
             to_string_with_precision( r, settings.Precision );
@@ -816,6 +831,109 @@ int main( int argc, char *argv[] )
                 to_string_with_precision( settings.Input[2] - r, settings.Precision );
             std::cout << resultDelta << std::endl;
         }
+    }
+    //------------------------------------------------------------------------------------------------------------------
+    if( vm.count( "sk42toGK" ) ) {
+        settings.Input = vm["sk42toGK"].as<std::vector<double>>();
+        if( settings.Input.size() != 2 ) {
+            std::cout << "Неверный ввод, смотри --help/Wrong input, read --help" << std::endl;
+            return EXIT_FAILURE;
+        }
+        int n, x, y;
+        SPML::Geodesy::SK42toGaussKruger( settings.RangeUnit, settings.AngleUnit,
+            settings.Input[0], settings.Input[1], n, x, y );
+        std::string result = "N X[" + outrange + "] Y[" + outrange + "]: \n" +
+            std::to_string( n ) + " " +
+            to_string_with_precision( x, settings.Precision ) + " " +
+            to_string_with_precision( y, settings.Precision );
+        std::cout << result << std::endl;
+
+        if( vm.count( "check" ) ) {
+            std::cout << "\nCheck by solving inverse task and calc delta:" << std::endl;
+            double lat, lon;
+            SPML::Geodesy::GaussKrugerToSK42( settings.RangeUnit, settings.AngleUnit, x, y, lat, lon );
+            std::string result2 = "Lat[" + outangle + "] Lon[" + outangle + "]:\n" +
+                to_string_with_precision( lat, settings.Precision ) + " " +
+                to_string_with_precision( lon, settings.Precision );
+            std::cout << result2 << std::endl;
+            std::cout << "\nDelta:" << std::endl;
+            std::string resultDelta = "Lat[" + outangle + "] Lon[" + outangle + "]:\n" +
+                to_string_with_precision( settings.Input[0] - lat, settings.Precision ) + " " +
+                to_string_with_precision( settings.Input[1] - lon, settings.Precision );
+            std::cout << resultDelta << std::endl;
+        }
+    }
+    //------------------------------------------------------------------------------------------------------------------
+    if( vm.count( "GKtosk42" ) ) {
+        settings.Input = vm["GKtosk42"].as<std::vector<double>>();
+        if( settings.Input.size() != 2 ) {
+            std::cout << "Неверный ввод, смотри --help/Wrong input, read --help" << std::endl;
+            return EXIT_FAILURE;
+        }
+        double lat, lon;
+        SPML::Geodesy::GaussKrugerToSK42( settings.RangeUnit, settings.AngleUnit,
+            settings.Input[0], settings.Input[1], lat, lon );
+        std::string result = "Lat[" + outangle + "] Lon[" + outangle + "]:\n" +
+            to_string_with_precision( lat, settings.Precision ) + " " +
+            to_string_with_precision( lon, settings.Precision );
+        std::cout << result << std::endl;
+
+        if( vm.count( "check" ) ) {
+            std::cout << "\nCheck by solving inverse task and calc delta:" << std::endl;
+            int n, x, y;
+            SPML::Geodesy::SK42toGaussKruger( settings.RangeUnit, settings.AngleUnit, lat, lon, n, x, y );
+            std::string result2 = "N X[" + outrange + "] Y[" + outrange + "]: \n" +
+                std::to_string( n ) + " " +
+                to_string_with_precision( x, settings.Precision ) + " " +
+                to_string_with_precision( y, settings.Precision );
+            std::cout << result2 << std::endl;
+            std::cout << "\nDelta:" << std::endl;
+            std::string resultDelta = "X[" + outrange + "] Y[" + outrange + "]: \n" +
+                to_string_with_precision( settings.Input[0] - x, settings.Precision ) + " " +
+                to_string_with_precision( settings.Input[1] - y, settings.Precision );
+            std::cout << resultDelta << std::endl;
+        }
+    }
+    SPML::Geodesy::TGeodeticDatum _from;
+    SPML::Geodesy::TGeodeticDatum _to;
+    //------------------------------------------------------------------------------------------------------------------
+    if( vm.count( "from" ) ) {
+        std::string from = vm["from"].as<std::string>();
+        DetermineGeodeticDatum( from, _from );
+    }
+    //------------------------------------------------------------------------------------------------------------------
+    if( vm.count( "to" ) ) {
+        std::string to = vm["to"].as<std::string>();
+        DetermineGeodeticDatum( to, _to );
+    }
+    //------------------------------------------------------------------------------------------------------------------
+    if( vm.count( "list" ) ) {
+        std::cout << "Bursa-Wolf conversions:\n" <<
+        "sk42 <--> wgs84 \n" <<
+        "sk42 <--> pz9011 \n" <<
+        "sk95 <--> pz9011 \n" <<
+        "gsk2011 <--> pz9011 \n" <<
+        "pz9002 <--> pz9011 \n" <<
+        "pz90 <--> pz9011 \n" <<
+        "wgs84 <--> pz9011 \n" <<
+        "pz9011 <--> itrf2008"<< std::endl;
+        return EXIT_SUCCESS;
+    }
+    //------------------------------------------------------------------------------------------------------------------
+    if( vm.count( "bw" ) ) {
+        settings.Input = vm["bw"].as<std::vector<double>>();
+        if( settings.Input.size() != 3 ) {
+            std::cout << "Неверный ввод, смотри --help/Wrong input, read --help" << std::endl;
+            return EXIT_FAILURE;
+        }
+        double x, y, z;
+        SPML::Geodesy::ECEFtoECEF_7params( _from, settings.Input[0], settings.Input[1], settings.Input[2], _to, x, y, z );
+//        std::string result2 = "X[" + outrange + "] Y[" + outrange + "] Z[" + outrange + "]:\n" +
+        std::string result = "X[m] Y[m] Z[m]:\n" +
+            to_string_with_precision( x, settings.Precision ) + " " +
+            to_string_with_precision( y, settings.Precision ) + " " +
+            to_string_with_precision( z, settings.Precision );
+        std::cout << result << std::endl;
     }
     //------------------------------------------------------------------------------------------------------------------
     return EXIT_SUCCESS;

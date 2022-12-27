@@ -2029,10 +2029,24 @@ void GEOtoGeoMolodenskyFull( const CEllipsoid &el0, const Units::TRangeUnit &ran
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void GEOtoGaussKruger( double lat, double lon, int &n, int &x, int &y )
+void SK42toGaussKruger( const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
+    double lat, double lon, int &n, int &x, int &y )
 {
-    double B = lat * SPML::Convert::DgToRdD;
-    double L = lon * SPML::Convert::DgToRdD;
+    double B = lat;
+    double L = lon;
+
+    // При необходимости переведем в Радианы:
+    switch( angleUnit ) {
+        case( Units::TAngleUnit::AU_Radian ): break; // Уже переведено
+        case( Units::TAngleUnit::AU_Degree ):
+        {
+            B *= Convert::DgToRdD;
+            L *= Convert::DgToRdD;
+            break;
+        }
+        default:
+            assert( false );
+    }
 
 //    n = static_cast<int>( std::ceil( ( 6.0 + lon ) / 6.0 ) );
     n = static_cast<int>( 1.0 + ( lon / 6.0 ) );
@@ -2063,11 +2077,42 @@ void GEOtoGaussKruger( double lat, double lon, int &n, int &x, int &y )
         0.5977 * sinBpow6 + l2 * ( 1070204.16 - 2136826.66 * sinBpow2 + 17.98 * sinBpow4 - 11.99 * sinBpow6 +
         l2 * ( 270806.0 - 1523417.0 * sinBpow2 + 1327645.0 * sinBpow4 - 21701.0 * sinBpow6 +
         l2 * ( 79690.0 - 866190.0 * sinBpow2 + 1730360.0 * sinBpow4 - 945460.0 * sinBpow6 )))) );
+
+    n = n + 30;
+
+    // Проверим, нужен ли перевод:
+    switch( rangeUnit ) {
+        case( Units::TRangeUnit::RU_Meter ): break; // Уже переведено
+        case( Units::TRangeUnit::RU_Kilometer):
+        {
+            x /= 1000;
+            y /= 1000;
+            break;
+        }
+        default:
+            assert( false );
+    }
 }
 
-void GaussKrugerToGEO( int x, int y, double &lat, double &lon )
+void GaussKrugerToSK42( const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
+    int x, int y, double &lat, double &lon )
 {
-    double beta = static_cast<double>( x ) / 6367558.4968;
+    int _x = x;
+    int _y = y;
+    // Проверим, нужен ли перевод:
+    switch( rangeUnit ) {
+        case( Units::TRangeUnit::RU_Meter ): break; // Уже переведено
+        case( Units::TRangeUnit::RU_Kilometer):
+        {
+            _x *= 1000.0;
+            _y *= 1000.0;
+            break;
+        }
+        default:
+            assert( false );
+    }
+
+    double beta = static_cast<double>( _x ) / 6367558.4968;
     double sinbeta = std::sin( beta );
     double sin2beta = std::sin( 2.0 * beta );
     double sinbetapow2 = sinbeta * sinbeta;
@@ -2082,8 +2127,8 @@ void GaussKrugerToGEO( int x, int y, double &lat, double &lon )
     double sinB0pow6 = sinB0pow2 * sinB0pow2 * sinB0pow2;
     double cosB0 = std::cos( B0 );
 
-    int n = static_cast<int>( static_cast<double>( y ) / 1000000.0 );
-    double z0 = ( static_cast<double>( y ) - ( static_cast<double>( 10 * n + 5 ) * 100000.0 ) ) / ( 6378245.0 * cosB0 );
+    int n = static_cast<int>( static_cast<double>( _y ) / 1000000.0 );
+    double z0 = ( static_cast<double>( _y ) - ( static_cast<double>( 10 * n + 5 ) * 100000.0 ) ) / ( 6378245.0 * cosB0 );
     double z02 = z0 * z0;
 
     double dB = -z02 * sin2B0 * ( 0.251684631 - 0.003369263 * sinB0pow2 + 0.00001127 * sinB0pow4 -
@@ -2097,9 +2142,26 @@ void GaussKrugerToGEO( int x, int y, double &lat, double &lon )
         z02 * ( 0.01225 + 0.09477 * sinB0pow2 + 0.03282 * sinB0pow4 - 0.00034 * sinB0pow6 -
         z02 * ( 0.0038 + 0.0524 * sinB0pow2 + 0.0482 * sinB0pow4 - 0.0032 * sinB0pow6 )))));
 
-    lat = ( B0 + dB ) * SPML::Convert::RdToDgD;
-//    lon = ( 6.0 * ( static_cast<double>( n ) - 0.5 ) ) + l * SPML::Convert::RdToDgD;
-    lon = static_cast<double>( 6 * n - 3 ) + l * SPML::Convert::RdToDgD;
+//    lat = ( B0 + dB ) * SPML::Convert::RdToDgD;
+//    lon = static_cast<double>( 6 * n - 3 ) + l * SPML::Convert::RdToDgD;
+    lat = B0 + dB;
+
+    // При необходимости переведем в градусы:
+    switch( angleUnit ) {
+        case( Units::TAngleUnit::AU_Radian ):
+        {
+            // lat уже в радианах
+            lon = static_cast<double>( 6 * n - 3 ) * SPML::Convert::RdToDgD + l;
+        }
+        case( Units::TAngleUnit::AU_Degree ):
+        {
+            lat *= Convert::RdToDgD;
+            lon = static_cast<double>( 6 * n - 3 ) + l * SPML::Convert::RdToDgD;
+            break;
+        }
+        default:
+            assert( false );
+    }
 }
 
 }
