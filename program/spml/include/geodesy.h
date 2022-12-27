@@ -1247,6 +1247,16 @@ static const CShiftECEF_3 SK95toPZ90( "SK95toPZ90", 25.90, -130.94, -81.76 );
 //---------------------------------
 
 ///
+/// \brief SK-42 to WGS-84
+/// \details EPSG:5044
+///
+static const CShiftECEF_7 SK42toWGS84( "SK42toWGS84", 23.57, -140.95, -79.8,
+     0.0 / 3600.0 * SPML::Convert::DgToRdD,
+    -0.35 / 3600.0 * SPML::Convert::DgToRdD,
+    -0.79 / 3600.0 * SPML::Convert::DgToRdD,
+    -0.00000022 );
+
+///
 /// \brief SK-42 to PZ-90.11
 /// \details ГОСТ 32453-2017, Приложение А, подраздел А1
 ///
@@ -1424,22 +1434,27 @@ void ECEFtoECEF_7params( const TGeodeticDatum &from, XYZ ecefs, const TGeodeticD
 //                                        Преобразования Молоденского
 //----------------------------------------------------------------------------------------------------------------------
 ///
-/// \brief Полное преобразование Молоденского для геодезических координат
-/// \details EPSG:9604
-///
-void GEOtoGeoMolodenskyFull( const CEllipsoid &el0, const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
-    double lat0, double lon0, double h0, double dx, double dy, double dz, double rx, double ry, double rz, double s,
-    const CEllipsoid &el1, double &lat1, double &lon1, double &h1 );
-
-///
 /// \brief Сокращенное преобразование Молоденского для геодезических координат
 /// \details EPSG:9605
 ///
 void GEOtoGeoMolodenskyAbridged( const CEllipsoid &el0, const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
     double lat0, double lon0, double h0, double dx, double dy, double dz,
     const CEllipsoid &el1, double &lat1, double &lon1, double &h1 );
+
+///
+/// \brief Полное преобразование Молоденского для геодезических координат
+/// \details EPSG:9604
+///
+void GEOtoGeoMolodenskyFull( const CEllipsoid &el0, const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
+    double lat0, double lon0, double h0, double dx, double dy, double dz, double rx, double ry, double rz, double s,
+    const CEllipsoid &el1, double &lat1, double &lon1, double &h1 );
+//----------------------------------------------------------------------------------------------------------------------
+//                       Геодезические координаты в плоские прямоугольные Гаусса-Крюгера
 //----------------------------------------------------------------------------------------------------------------------
 
+void GEOtoGaussKruger( double lat, double lon, int &n, int &x, int &y );
+
+void GaussKrugerToGEO( int x, int y, double &lat, double &lon );
 
 
 } // end namespace SPML

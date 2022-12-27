@@ -534,5 +534,37 @@ BOOST_AUTO_TEST_CASE( test_MolodenskyFull_1 )
 
 BOOST_AUTO_TEST_SUITE_END()
 //----------------------------------------------------------------------------------------------------------------------
+BOOST_AUTO_TEST_SUITE( test_suite_GaussKruger )
+
+BOOST_AUTO_TEST_CASE( test_GaussKruger_1 )
+{
+//    double lat1 = 55.819;
+//    double lon1 = 37.611;
+//    double h1 = 0.0;
+
+//    SPML::Geodesy::CEllipsoid el0 = SPML::Geodesy::Ellipsoids::WGS84();
+//    SPML::Geodesy::CEllipsoid el1 = SPML::Geodesy::Ellipsoids::Krassowsky1940();
+//    const SPML::Units::TAngleUnit unitAngle = SPML::Units::TAngleUnit::AU_Degree;
+//    const SPML::Units::TRangeUnit unitRange = SPML::Units::TRangeUnit::RU_Meter;
+//    double x1, y1, z1, x2, y2, z2;
+//    SPML::Geodesy::GEOtoECEF( el0, unitRange, unitAngle, lat1, lon1, h1, x1, y1, z1 );
+//    SPML::Geodesy::ECEFtoECEF_7params( SPML::Geodesy::TGeodeticDatum::GD_WGS84, x1, y1, z1,
+//        SPML::Geodesy::TGeodeticDatum::GD_SK42, x2, y2, z2 );
+//    double lat2, lon2, h2;
+//    SPML::Geodesy::ECEFtoGEO( el1, unitRange, unitAngle, x2, y2, z2, lat2, lon2, h2 );
+
+    double lat2 = 55.0 + 50.0 / 60.0;
+    double lon2 = 37.0 + 45.0 / 60.0;
+    int n_sk42, x_sk42, y_sk42;
+
+    SPML::Geodesy::GEOtoGaussKruger( lat2, lon2, n_sk42, x_sk42, y_sk42 );
+
+    double lat3, lon3;
+    SPML::Geodesy::GaussKrugerToGEO( x_sk42, y_sk42, lat3, lon3 );
+
+    int abc1 = 0;
+}
 
 
+BOOST_AUTO_TEST_SUITE_END()
+//----------------------------------------------------------------------------------------------------------------------
