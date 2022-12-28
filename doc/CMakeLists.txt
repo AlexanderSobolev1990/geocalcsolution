@@ -8,6 +8,8 @@ set(DOXYGEN_INPUT_DIRECTORY # Откуда брать исходники для 
 )
 set(DOXYGEN_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}) # Куда положить сгенерированную документацию
 
+set(DOXYGEN_IMAGE_PATH ${GEOCALCSOLUTION_DIR}/doc/pics/)
+
 if(${CMAKE_VERSION} VERSION_GREATER "3.8")
 #if(CMAKE_VERSION VERSION_LESS 3.9)
     # Версия CMake >= 3.9 умеет сама создавать файл настроек doxygen, что мы и делаем:
