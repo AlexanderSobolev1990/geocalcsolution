@@ -6,7 +6,14 @@
 
 * Sovling direct and inverse geodetic tasks on ellipsoid / Решение и обратной геодезической задачи на эллипсоиде
 
-<p style="text-align: center;">Fig.1 - Geodetic problems/Рис.1 - Геодезические задачи</p>
+<p style="text-align: center;">
+<span style="text-decoration: underline">
+Fig.1 - Geodetic problems/Рис.1 - Геодезические задачи
+</span>
+</p>
+<!--<div style="text-align: center;">
+![](doc/pics/directinverse.jpg width="500px")
+</div>-->
 <center><img src="doc/pics/directinverse.jpg" width="500px" /></center>
 <?\image html directinverse.jpg width=500px?>
 <?\image latex directinverse.jpg?>
@@ -14,7 +21,7 @@
 ***
 
 * Conversion between following coordinate systems/Перевод между следующими системами коориднат:
-    - Geodetic <--> ECEF (Earth Centered Aerth Fixed)/Геодезические в глобальные декартовые геоцентрические;
+    - Geodetic <--> ECEF (Earth Centered Earth Fixed)/Геодезические в глобальные декартовые геоцентрические;
     - Geodetic <--> ENU (xEast, yNorth, zUp)/Геодезические в местные декартовые;
     - Geodetic <--> AER (Azimuth, Elevation, slantRange)/Геодезические в местные cферические;
     - ECEF <--> ENU/Глобальные декартовые геоцентрические в местные декартовые;
@@ -22,15 +29,29 @@
     - ENU <--> AER/Местные декартовые в местные cферические;
 
 <!--<center>Fig.2 - Geodetic to ECEF/Рис.2 - Геодезические координаты в глобальные декартовые</center>-->
-<p style="text-align: center;">Fig.2 - Geodetic to ECEF/Рис.2 - Геодезические координаты в глобальные декартовые</p>
-<center><img src="doc/pics/geoecef.jpg" width="500px" /></center>
-<?\image html geoecef.jpg width=500px?>
+<p style="text-align: center;">
+<span style="text-decoration: underline">
+Fig.2 - Geodetic to ECEF/Рис.2 - Геодезические координаты в глобальные декартовые
+</span>
+</p>
+<!--<div style="text-align: center;">
+![](doc/pics/geoecef.jpg width="500px")
+</div>-->
+<center><img src="doc/pics/geoecef.jpg" width="650px" /></center>
+<?\image html geoecef.jpg width=650px?>
 <?\image latex geoecef.jpg?>
 
 <!--<center>Fig.3 - ENU to AER/Рис.3 - местные декартовые координаты в местные сферические</center>-->
-<p style="text-align: center;">Fig.3 - ENU to AER/Рис.3 - местные декартовые координаты в местные сферические</p>
-<center><img src="doc/pics/enuaer.jpg" width="500px" /></center>
-<?\image html enuaer.jpg width=500px?>
+<p style="text-align: center;">
+<span style="text-decoration: underline">
+Fig.3 - ENU to AER/Рис.3 - местные декартовые координаты в местные сферические
+</span>
+</p>
+<!--<div style="text-align: center;">
+![](doc/pics/enuaer.jpg width="500px")
+</div>-->
+<center><img src="doc/pics/enuaer.jpg" width="770px" /></center>
+<?\image html enuaer.jpg width=770px?>
 <?\image latex enuaer.jpg?>
 
 ***
@@ -47,12 +68,19 @@
     - PZ-90.11 <--> ITRF-2008
 
 * Conversion between Lat-Lon on Krassowsky1942 ellipsoid and X-Y Gauss-Kruger SK42/Перевод между широтой/долготой на эллипсоиде
-Красовского и плоскими кооридинатами Гаусса-Крюгера СК42
+Красовского и плоскими координатами Гаусса-Крюгера СК42
 
 <!--<center>Fig.4 - SK-42 coordinate system/Рис.4 - листы СК-42</center>-->
-<p style="text-align: center;">Fig.4 - SK-42 coordinate system/Рис.4 - листы СК-42</p>
-<center><img src="doc/pics/sk42.jpg" width="500px" /></center>
-<?\image html sk42.jpg width=500px?>
+<p style="text-align: center;">
+<span style="text-decoration: underline">
+Fig.4 - SK-42 coordinate system/Рис.4 - листы СК-42
+</span>
+</p>
+<!--<div style="text-align: center;">
+![](doc/pics/sk42.jpg width="500px")
+</div>-->
+<center><img src="doc/pics/sk42.jpg" width="650px" /></center>
+<?\image html sk42.jpg width=650px?>
 <?\image latex sk42.jpg?>
 
 ## 2. References / Ссылки ##
@@ -68,3 +96,14 @@ Aerospace and Electronic Systems, 32(1), 473–476. https://doi.org/10.1109/7.48
 ## 3. Dependencies / Зависимости ##
 <br /> Boost for console commands parsing, testing / Boost для ввода команд с консоли, тестирования.
 
+## 4. Documentation / Документация ##
+
+Including doxygen html and latex doc generation while building in release mode/doxygen и latex документация 
+автоматически создается при релизной сборке.
+
+## 5. Build / Сборка ##
+
+Possible Linux-Ubuntu command is/Сборка под Linux-Ubuntu производится командой:
+```
+mkdir build && cd build && cmake .. && make && ctest && cpack
+```

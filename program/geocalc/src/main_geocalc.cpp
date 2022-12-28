@@ -255,13 +255,13 @@ int main( int argc, char *argv[] )
             settings.EllipsoidNumber = 1;
         } else if( elName == "pz90" ) {
             settings.EllipsoidNumber = 2;
-        } else if( elName == "krassowsky1940" ) {
+        } else if( elName == "krasovsky1940" ) {
             settings.EllipsoidNumber = 3;
         } else if( elName == "sphere6371" ) {
             settings.EllipsoidNumber = 4;
         } else if( elName == "sphere6378" ) {
             settings.EllipsoidNumber = 5;
-        } else if( elName == "spherekrassowsky1940" ) {
+        } else if( elName == "spherekrasovsky1940" ) {
             settings.EllipsoidNumber = 6;
         } else {
             std::cout << "Неверный ввод, смотри --help/Wrong input, read --help" << std::endl;

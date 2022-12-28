@@ -59,9 +59,9 @@ set(CPACK_DEBIAN_PACKAGE_MAINTAINER "(C) Alexander Sobolev, 2022")
 set(CPACK_DEBIAN_GEOCALC_PACKAGE_DEPENDS "libboost-dev,libboost-test-dev")
 set(CPACK_COMPONENT_GEOCALC_DESCRIPTION "Geodetic Calculator")
 
-set(CPACK_PACKAGE_VERSION_MAJOR 22) # Год
-set(CPACK_PACKAGE_VERSION_MINOR 12) # Месяц
-set(CPACK_PACKAGE_VERSION_PATCH 21) # День-Версия
+set(CPACK_PACKAGE_VERSION_MAJOR 0) # Год
+set(CPACK_PACKAGE_VERSION_MINOR 0) # Месяц
+set(CPACK_PACKAGE_VERSION_PATCH 1) # День-Версия
 
 set(CPACK_SET_DESTDIR true) # Если выставлено - будет инсталлироваться в /usr/local/bin, иначе в /usr/bin
 #set(CMAKE_INSTALL_PREFIX /opt)
