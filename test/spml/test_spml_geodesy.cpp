@@ -567,3 +567,43 @@ BOOST_AUTO_TEST_CASE( test_fromGaussKruger_1 )
 
 BOOST_AUTO_TEST_SUITE_END()
 //----------------------------------------------------------------------------------------------------------------------
+BOOST_AUTO_TEST_SUITE( test_suite_Molodenskiy )
+
+const SPML::Units::TAngleUnit unitAngle = SPML::Units::TAngleUnit::AU_Degree;
+const SPML::Units::TRangeUnit unitRange = SPML::Units::TRangeUnit::RU_Meter;
+
+// R.E. Deakin Department of Mathematical and Geospatial Sciences, RMIT University
+// GPO Box 2476V, MELBOURNE VIC 3001, AUSTRALIA
+double lat = -( 37.0 + 48.0 / 60.0 ); // deg
+double lon = 144.0 + 58.0 / 60.0; // deg
+double h = 50.0; // meters
+
+double eps = 1.0e-4;
+
+SPML::Geodesy::CEllipsoid el0 = SPML::Geodesy::Ellipsoids::ADG66(); //Krassowsky1940();
+SPML::Geodesy::CEllipsoid el1 = SPML::Geodesy::Ellipsoids::WGS84();
+
+BOOST_AUTO_TEST_CASE( test_Full_1 )
+{
+    double lat_, lon_, h_;
+    double dX = SPML::Geodesy::AGD66toWGS84_mol.dX();
+    double dY = SPML::Geodesy::AGD66toWGS84_mol.dY();
+    double dZ = SPML::Geodesy::AGD66toWGS84_mol.dZ();
+    SPML::Geodesy::GEOtoGeoMolodenskyFull( el0, unitRange, unitAngle, lat, lon, h,
+        dX, dY, dZ, 0.0, 0.0, 0.0, 0.0, el1, lat_, lon_, h_ );
+    int abc = 0;
+}
+
+BOOST_AUTO_TEST_CASE( test_Abridged_1 )
+{
+    double lat_, lon_, h_;
+    double dX = SPML::Geodesy::AGD66toWGS84_mol.dX();
+    double dY = SPML::Geodesy::AGD66toWGS84_mol.dY();
+    double dZ = SPML::Geodesy::AGD66toWGS84_mol.dZ();
+    SPML::Geodesy::GEOtoGeoMolodenskyAbridged( el0, unitRange, unitAngle, lat, lon, h,
+        dX, dY, dZ, el1, lat_, lon_, h_ );
+    int abc = 0;
+}
+
+BOOST_AUTO_TEST_SUITE_END()
+//----------------------------------------------------------------------------------------------------------------------

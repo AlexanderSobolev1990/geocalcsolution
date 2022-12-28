@@ -1767,9 +1767,13 @@ void ECEFtoECEF_3params( const TGeodeticDatum &from, XYZ ecefs, const TGeodeticD
 CShiftECEF_3 GetShiftECEF_3( const TGeodeticDatum &from, const TGeodeticDatum &to )
 {
     if( from == TGeodeticDatum::GD_SK95 && to == TGeodeticDatum::GD_PZ90 ) {
-        return SK95toPZ90;
-    } if( from == TGeodeticDatum::GD_PZ90 && to == TGeodeticDatum::GD_SK95 ) {
-        return SK95toPZ90.Inverse();
+        return SK95toPZ90_mol;
+    } else if( from == TGeodeticDatum::GD_PZ90 && to == TGeodeticDatum::GD_SK95 ) {
+        return SK95toPZ90_mol.Inverse();
+    } else if( from == TGeodeticDatum::GD_SK42 && to == TGeodeticDatum::GD_WGS84 ) {
+        return SK42toWGS84_mol;
+    } else if( from == TGeodeticDatum::GD_WGS84 && to == TGeodeticDatum::GD_SK42 ) {
+        return SK42toWGS84_mol.Inverse();
     } else {
         assert( false );
     }
@@ -1872,37 +1876,50 @@ void GEOtoGeoMolodenskyAbridged( const CEllipsoid &el0, const Units::TRangeUnit 
             assert( false );
     }
 
-    double as = el0.A();
+    double as = el0.A();    
     double at = el1.A();
+
+    double bs = el0.B();
 
     double fs = 1.0 / el0.Invf();
     double ft = 1.0 / el1.Invf();
 
     double da = at - as;
     double df = ft - fs;
+//    double da = as - at; // ???
+//    double df = fs - ft; // ???
 
     double sinPhi = std::sin( _lat0 );
     double cosPhi = std::cos( _lat0 );
     double sinLam = std::sin( _lon0 );
     double cosLam = std::cos( _lon0 );
 
-    double tmp = 1.0 - el0.EccentricityFirstSquared() * sinPhi * sinPhi;
-    double ps = el0.A() * ( 1.0 - el0.EccentricityFirstSquared() ) / pow( tmp, 1.5 );
-    double vs = el0.A() / std::sqrt( tmp );
+    double e2 = el0.EccentricityFirstSquared();
 
-//    double sin1sec = std::sin( 1.0 / 3600.0 * SPML::Convert::DgToRdD ); // sin of 1 sec
+    double tmp = 1.0 - e2 * sinPhi * sinPhi;
+    double ps = el0.A() * ( 1.0 - e2 ) / pow( tmp, 1.5 ); // Rm // p
+    double vs = el0.A() / std::sqrt( tmp ); // Rn //
 
-    // Short Molodensky formulas
-//    double dlat = ( -dx * sinPhi * cosLam - dy * sinPhi * sinLam + dz * cosPhi + ( as * df + fs * da ) *
-//        std::sin( 2.0 * _lat0 ) ) / ( ps * sin1sec );
-//    double dlon = ( -dx * sinLam + dy * cosLam ) / ( vs * cosPhi * sin1sec );
+    double sin1sec = std::sin( 1.0 / 3600.0 * SPML::Convert::DgToRdD ); // sin of 1 sec
+
+    // R.E. Deakin Department of Mathematical and Geospatial Sciences, RMIT University
+    // GPO Box 2476V, MELBOURNE VIC 3001, AUSTRALIA
     double dlat = ( -dx * sinPhi * cosLam - dy * sinPhi * sinLam + dz * cosPhi + ( as * df + fs * da ) *
-        std::sin( 2.0 * _lat0 ) ) / ps;
+        2.0 * sinPhi * cosPhi ) / ps;
     double dlon = ( -dx * sinLam + dy * cosLam ) / ( vs * cosPhi );
     double dh = dx * cosPhi * cosLam + dy * cosPhi * sinLam + dz * sinPhi + ( as * df + fs * da ) * sinPhi * sinPhi - da;
-
     lat1 = _lat0 + dlat;
     lon1 = _lon0 + dlon;
+
+    // NIMA-tr8350.2-wgs84fin.pdf
+//    double dlat = ( -dx * sinPhi * cosLam - dy * sinPhi * sinLam + dz * cosPhi +
+//        da * ( vs * e2 * sinPhi * cosPhi ) / as + df * ( ps * ( as / bs ) + vs * ( bs / as ) ) * sinPhi * cosPhi ) /
+//        ( ( ps + _h0 ) * sin1sec );
+//    double dlon = ( -dx * sinLam + dy * cosLam ) / ( vs * cosPhi * sin1sec );
+//    double dh = dx * cosPhi * cosLam + dy * cosPhi * sinLam + dz * sinPhi - da * ( as / vs ) + df * ( bs / as ) * vs * sinPhi * sinPhi;
+//    lat1 = _lat0 + dlat / 3600.0;
+//    lon1 = _lon0 + dlon / 3600.0;
+
     h1 = _h0 + dh;
 
     // Проверим, нужен ли перевод:

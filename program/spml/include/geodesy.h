@@ -217,6 +217,11 @@ static CEllipsoid SphereKrassowsky1940()
     return CEllipsoid( "SphereRadiusKrasovsky1940 (EPSG:7024)", 6378245.0, 6378245.0, 0.0, false );
 }
 
+static CEllipsoid ADG66()
+{
+    return CEllipsoid( "Australian Geodetic Datum 1966/84 (AGD) (EPSG:?)", 6378160.0, 0.0, 298.25, true );
+}
+
 ///
 /// \brief Возвращает доступные предопределенные эллипсоидоы
 /// \return Вектор предопределенных эллипсоидов
@@ -231,7 +236,8 @@ static const __attribute__ ((unused)) std::vector<CEllipsoid> GetPredefinedEllip
         Krassowsky1940(),
         Sphere6371(),
         Sphere6378(),
-        SphereKrassowsky1940()
+        SphereKrassowsky1940(),
+        ADG66()
     };
 }
 
@@ -1240,7 +1246,20 @@ enum TGeodeticDatum : int
 /// \brief SK-95 to PZ-90
 /// \details ГОСТ Р 51794-2001
 ///
-static const CShiftECEF_3 SK95toPZ90( "SK95toPZ90", 25.90, -130.94, -81.76 );
+static const CShiftECEF_3 SK95toPZ90_mol( "SK95toPZ90", 25.90, -130.94, -81.76 );
+
+///
+/// \brief SK-42 to WGS-84
+/// \details ГОСТ Р 51794-2001
+///
+static const CShiftECEF_3 SK42toWGS84_mol( "SK42toWGS84", 23.92, -141.27, -80.90 );//-80.91
+
+///
+/// \brief AGD66 to WGS-84
+/// \details R.E. Deakin Department of Mathematical and Geospatial Sciences, RMIT University
+/// GPO Box 2476V, MELBOURNE VIC 3001, AUSTRALIA
+///
+static const CShiftECEF_3 AGD66toWGS84_mol( "SK42toWGS84", -134.0, -48.0, 149.0 );
 
 //---------------------------------
 // 7-параметрическое преобразование
