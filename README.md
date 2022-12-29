@@ -4,7 +4,8 @@
 
 ***
 
-* Sovling direct and inverse geodetic tasks on ellipsoid / Решение и обратной геодезической задачи на эллипсоиде
+* Sovling direct and inverse geodetic tasks on ellipsoid (using Vincenty formulas) / 
+Решение и обратной геодезической задачи на эллипсоиде (по формулам Винсента)
 
 <p style="text-align: center;">
 <span style="text-decoration: underline">

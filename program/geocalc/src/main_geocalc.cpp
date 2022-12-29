@@ -92,6 +92,8 @@ int DetermineGeodeticDatum( std::string str, SPML::Geodesy::TGeodeticDatum &gd )
         gd = SPML::Geodesy::TGeodeticDatum::GD_GSK2011;
     } else if( str == "itrf2008" ) {
         gd = SPML::Geodesy::TGeodeticDatum::GD_ITRF2008;
+    } else if( str == "agd66" ) {
+        gd = SPML::Geodesy::TGeodeticDatum::GD_AGD66;
     } else {
         std::cout << "Неверный ввод, смотри --help/Wrong input, read --help" << std::endl;
         return EXIT_FAILURE;

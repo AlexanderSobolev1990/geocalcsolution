@@ -1747,7 +1747,8 @@ void ECEFtoECEF_3params( double xs, double ys, double zs, double dx, double dy, 
     zt = zs + dz;
 }
 
-void ECEFtoECEF_3params( TGeodeticDatum from, double xs, double ys, double zs, TGeodeticDatum to, double &xt, double &yt, double &zt )
+void ECEFtoECEF_3params( const TGeodeticDatum &from, double xs, double ys, double zs,
+    const TGeodeticDatum &to, double &xt, double &yt, double &zt )
 {
     CShiftECEF_3 shift = GetShiftECEF_3( from, to );
     xt = xs + shift.dX();
@@ -1774,6 +1775,10 @@ CShiftECEF_3 GetShiftECEF_3( const TGeodeticDatum &from, const TGeodeticDatum &t
         return SK42toWGS84_mol;
     } else if( from == TGeodeticDatum::GD_WGS84 && to == TGeodeticDatum::GD_SK42 ) {
         return SK42toWGS84_mol.Inverse();
+    } else if( from == TGeodeticDatum::GD_AGD66 && to == TGeodeticDatum::GD_WGS84 ) {
+        return AGD66toWGS84_mol;
+    } else if( from == TGeodeticDatum::GD_WGS84 && to == TGeodeticDatum::GD_AGD66  ) {
+        return AGD66toWGS84_mol.Inverse();
     } else {
         assert( false );
     }
@@ -1910,16 +1915,6 @@ void GEOtoGeoMolodenskyAbridged( const CEllipsoid &el0, const Units::TRangeUnit 
     double dh = dx * cosPhi * cosLam + dy * cosPhi * sinLam + dz * sinPhi + ( as * df + fs * da ) * sinPhi * sinPhi - da;
     lat1 = _lat0 + dlat;
     lon1 = _lon0 + dlon;
-
-    // NIMA-tr8350.2-wgs84fin.pdf
-//    double dlat = ( -dx * sinPhi * cosLam - dy * sinPhi * sinLam + dz * cosPhi +
-//        da * ( vs * e2 * sinPhi * cosPhi ) / as + df * ( ps * ( as / bs ) + vs * ( bs / as ) ) * sinPhi * cosPhi ) /
-//        ( ( ps + _h0 ) * sin1sec );
-//    double dlon = ( -dx * sinLam + dy * cosLam ) / ( vs * cosPhi * sin1sec );
-//    double dh = dx * cosPhi * cosLam + dy * cosPhi * sinLam + dz * sinPhi - da * ( as / vs ) + df * ( bs / as ) * vs * sinPhi * sinPhi;
-//    lat1 = _lat0 + dlat / 3600.0;
-//    lon1 = _lon0 + dlon / 3600.0;
-
     h1 = _h0 + dh;
 
     // Проверим, нужен ли перевод:
@@ -1947,7 +1942,7 @@ void GEOtoGeoMolodenskyAbridged( const CEllipsoid &el0, const Units::TRangeUnit 
 }
 
 
-void GEOtoGeoMolodenskyFull( const CEllipsoid &el0, const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
+void GEOtoGeoMolodenskyStandard( const CEllipsoid &el0, const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
     double lat0, double lon0, double h0, double dx, double dy, double dz, double rx, double ry, double rz, double s,
     const CEllipsoid &el1, double &lat1, double &lon1, double &h1 )
 {
@@ -2006,7 +2001,7 @@ void GEOtoGeoMolodenskyFull( const CEllipsoid &el0, const Units::TRangeUnit &ran
     double M = el0.A() * ( 1.0 - ess ) / pow( tmp, 1.5 );
     double N = el0.A() / std::sqrt( tmp );
 
-    // Full Molodensky formulas
+    // ГОСТ 32453-2017
     double dlat = ( ( N / a ) * e2 * sinB * cosB * da + ( ( N * N ) / ( a * a ) + 1.0 ) * N * sinB * cosB * de2 / 2.0 -
         ( dx * cosL + dy * sinL ) * sinB + dz * cosB ) * ro / ( M + _h0 ) -
         rx * sinL * ( 1.0 + e2 * cos2B ) + ry * cosL * ( 1.0  + e2 * cos2B ) -

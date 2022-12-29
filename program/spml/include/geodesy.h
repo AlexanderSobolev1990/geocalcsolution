@@ -1234,7 +1234,8 @@ enum TGeodeticDatum : int
     GD_SK95 = 4,
     GD_SK42 = 5,
     GD_GSK2011 = 6,
-    GD_ITRF2008 = 7
+    GD_ITRF2008 = 7,
+    GD_AGD66 = 8
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -1252,14 +1253,14 @@ static const CShiftECEF_3 SK95toPZ90_mol( "SK95toPZ90", 25.90, -130.94, -81.76 )
 /// \brief SK-42 to WGS-84
 /// \details ГОСТ Р 51794-2001
 ///
-static const CShiftECEF_3 SK42toWGS84_mol( "SK42toWGS84", 23.92, -141.27, -80.90 );//-80.91
+static const CShiftECEF_3 SK42toWGS84_mol( "SK42toWGS84", 23.92, -141.27, -80.90 );
 
 ///
 /// \brief AGD66 to WGS-84
 /// \details R.E. Deakin Department of Mathematical and Geospatial Sciences, RMIT University
 /// GPO Box 2476V, MELBOURNE VIC 3001, AUSTRALIA
 ///
-static const CShiftECEF_3 AGD66toWGS84_mol( "SK42toWGS84", -134.0, -48.0, 149.0 );
+static const CShiftECEF_3 AGD66toWGS84_mol( "AGD66toWGS84", -134.0, -48.0, 149.0 );
 
 //---------------------------------
 // 7-параметрическое преобразование
@@ -1461,16 +1462,15 @@ void GEOtoGeoMolodenskyAbridged( const CEllipsoid &el0, const Units::TRangeUnit 
     const CEllipsoid &el1, double &lat1, double &lon1, double &h1 );
 
 ///
-/// \brief Полное преобразование Молоденского для геодезических координат
+/// \brief Полное (стандартное) преобразование Молоденского для геодезических координат
 /// \details EPSG:9604
 ///
-void GEOtoGeoMolodenskyFull( const CEllipsoid &el0, const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
+void GEOtoGeoMolodenskyStandard( const CEllipsoid &el0, const Units::TRangeUnit &rangeUnit, const Units::TAngleUnit &angleUnit,
     double lat0, double lon0, double h0, double dx, double dy, double dz, double rx, double ry, double rz, double s,
     const CEllipsoid &el1, double &lat1, double &lon1, double &h1 );
 //----------------------------------------------------------------------------------------------------------------------
 //                       Геодезические координаты в плоские прямоугольные Гаусса-Крюгера
 //----------------------------------------------------------------------------------------------------------------------
-
 ///
 /// \brief Перевод геодезических координат из СК-42 (на эллипсоиде Красовского) в X-Y координаты Гаусса-Крюгера
 /// \param[in]  rangeUnit - единицы измерения дальности

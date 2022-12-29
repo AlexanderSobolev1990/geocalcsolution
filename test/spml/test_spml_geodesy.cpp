@@ -489,9 +489,9 @@ BOOST_AUTO_TEST_CASE( test_AERtoENU )
 
 BOOST_AUTO_TEST_SUITE_END()
 //----------------------------------------------------------------------------------------------------------------------
-BOOST_AUTO_TEST_SUITE( test_suite_MolodenskyShort )
+BOOST_AUTO_TEST_SUITE( test_suite_Molodensky )
 
-BOOST_AUTO_TEST_CASE( test_MolodenskyShort_1 )
+BOOST_AUTO_TEST_CASE( test_MolodenskyAbridged_1 )
 {
     SPML::Geodesy::CEllipsoid el0 = SPML::Geodesy::Ellipsoids::WGS84();
     SPML::Geodesy::CEllipsoid el1 = SPML::Geodesy::Ellipsoids::PZ90();
@@ -506,7 +506,7 @@ BOOST_AUTO_TEST_CASE( test_MolodenskyShort_1 )
     int abc = 0;
 }
 
-BOOST_AUTO_TEST_CASE( test_MolodenskyFull_1 )
+BOOST_AUTO_TEST_CASE( test_MolodenskyStandard_1 )
 {
     SPML::Geodesy::CEllipsoid el0 = SPML::Geodesy::Ellipsoids::WGS84();
     SPML::Geodesy::CEllipsoid el1 = SPML::Geodesy::Ellipsoids::PZ90();
@@ -516,7 +516,7 @@ BOOST_AUTO_TEST_CASE( test_MolodenskyFull_1 )
     double dx = -0.013, dy = 0.106, dz = 0.022, rx = -0.00230, ry = 0.00354, rz = -0.00421, s = -0.000000008; // WGS84toPZ9011
     double lat1, lon1, h1;
 
-    SPML::Geodesy::GEOtoGeoMolodenskyFull( el0, unitRange, unitAngle, lat0, lon0, h0,
+    SPML::Geodesy::GEOtoGeoMolodenskyStandard( el0, unitRange, unitAngle, lat0, lon0, h0,
         dx, dy, dz, rx, ry, rz, s, el1, lat1, lon1, h1 );
 
     double x, y, z, x1, y1, z1;
@@ -567,31 +567,40 @@ BOOST_AUTO_TEST_CASE( test_fromGaussKruger_1 )
 
 BOOST_AUTO_TEST_SUITE_END()
 //----------------------------------------------------------------------------------------------------------------------
-BOOST_AUTO_TEST_SUITE( test_suite_Molodenskiy )
+BOOST_AUTO_TEST_SUITE( test_suite_MolodenskyAGD66 )
 
 const SPML::Units::TAngleUnit unitAngle = SPML::Units::TAngleUnit::AU_Degree;
 const SPML::Units::TRangeUnit unitRange = SPML::Units::TRangeUnit::RU_Meter;
 
 // R.E. Deakin Department of Mathematical and Geospatial Sciences, RMIT University
 // GPO Box 2476V, MELBOURNE VIC 3001, AUSTRALIA
+
+// Coords AGD66:
 double lat = -( 37.0 + 48.0 / 60.0 ); // deg
 double lon = 144.0 + 58.0 / 60.0; // deg
 double h = 50.0; // meters
 
-double eps = 1.0e-4;
+// Coords WGS84:
+double lat1 = -( 37.0 + 47.0 / 60.0 + 54.5293 / 3600.0 ); // deg
+double lon1 = 144.0 + 58.0 / 60.0 + 4.7508 / 3600.0; // deg
+double h1 = 46.382; // meters
+
+double eps = 1.0e-5;
 
 SPML::Geodesy::CEllipsoid el0 = SPML::Geodesy::Ellipsoids::ADG66(); //Krassowsky1940();
 SPML::Geodesy::CEllipsoid el1 = SPML::Geodesy::Ellipsoids::WGS84();
 
-BOOST_AUTO_TEST_CASE( test_Full_1 )
+BOOST_AUTO_TEST_CASE( test_Standard_1 )
 {
     double lat_, lon_, h_;
     double dX = SPML::Geodesy::AGD66toWGS84_mol.dX();
     double dY = SPML::Geodesy::AGD66toWGS84_mol.dY();
     double dZ = SPML::Geodesy::AGD66toWGS84_mol.dZ();
-    SPML::Geodesy::GEOtoGeoMolodenskyFull( el0, unitRange, unitAngle, lat, lon, h,
+    SPML::Geodesy::GEOtoGeoMolodenskyStandard( el0, unitRange, unitAngle, lat, lon, h,
         dX, dY, dZ, 0.0, 0.0, 0.0, 0.0, el1, lat_, lon_, h_ );
-    int abc = 0;
+    BOOST_CHECK_CLOSE_FRACTION( lat_, lat1, eps );
+    BOOST_CHECK_CLOSE_FRACTION( lon_, lon1, eps );
+    BOOST_CHECK_CLOSE_FRACTION( h_, h1, 0.005 );
 }
 
 BOOST_AUTO_TEST_CASE( test_Abridged_1 )
@@ -602,8 +611,95 @@ BOOST_AUTO_TEST_CASE( test_Abridged_1 )
     double dZ = SPML::Geodesy::AGD66toWGS84_mol.dZ();
     SPML::Geodesy::GEOtoGeoMolodenskyAbridged( el0, unitRange, unitAngle, lat, lon, h,
         dX, dY, dZ, el1, lat_, lon_, h_ );
-    int abc = 0;
+    BOOST_CHECK_CLOSE_FRACTION( lat_, lat1, eps );
+    BOOST_CHECK_CLOSE_FRACTION( lon_, lon1, eps );
+    BOOST_CHECK_CLOSE_FRACTION( h_, h1, 0.005 );
+}
+
+BOOST_AUTO_TEST_CASE( test_using_ECEF )
+{
+    double x1, y1, z1, x2, y2, z2, lat2, lon2, h2;
+    SPML::Geodesy::GEOtoECEF( el0, unitRange, unitAngle, lat, lon, h, x1, y1, z1 );
+    SPML::Geodesy::ECEFtoECEF_3params( SPML::Geodesy::TGeodeticDatum::GD_AGD66, x1, y1, z1,
+        SPML::Geodesy::TGeodeticDatum::GD_WGS84, x2, y2, z2 );
+    SPML::Geodesy::ECEFtoGEO( el1, unitRange, unitAngle, x2, y2, z2, lat2, lon2, h2 );
+    BOOST_CHECK_CLOSE_FRACTION( lat2, lat1, eps );
+    BOOST_CHECK_CLOSE_FRACTION( lon2, lon1, eps );
+    BOOST_CHECK_CLOSE_FRACTION( h2, h1, 0.005 );
+}
+BOOST_AUTO_TEST_SUITE_END()
+
+//----------------------------------------------------------------------------------------------------------------------
+BOOST_AUTO_TEST_SUITE( test_suite_MolodenskySK42 )
+
+const SPML::Units::TAngleUnit unitAngle = SPML::Units::TAngleUnit::AU_Degree;
+const SPML::Units::TRangeUnit unitRange = SPML::Units::TRangeUnit::RU_Meter;
+
+// https://gis-lab.info/qa/coord-transforms.html
+
+// Coords WGS84:
+double lat = 50.0; // deg
+double lon = 50.0; // deg
+double h = 0.0; // meters
+
+// Coords SK42:
+double lat1 = 49.9999631301; // deg
+double lon1 = 50.0014646551; // deg
+double h1 = 0.0; // meters
+
+double eps = 1.0e-5;
+
+SPML::Geodesy::CEllipsoid el0 = SPML::Geodesy::Ellipsoids::WGS84();
+SPML::Geodesy::CEllipsoid el1 = SPML::Geodesy::Ellipsoids::Krassowsky1940();
+
+BOOST_AUTO_TEST_CASE( test_Standard_1 )
+{
+    double lat_, lon_, h_;
+    double dX = SPML::Geodesy::SK42toWGS84_mol.Inverse().dX();
+    double dY = SPML::Geodesy::SK42toWGS84_mol.Inverse().dY();
+    double dZ = SPML::Geodesy::SK42toWGS84_mol.Inverse().dZ();
+    SPML::Geodesy::GEOtoGeoMolodenskyStandard( el0, unitRange, unitAngle, lat, lon, h,
+        dX, dY, dZ, 0.0, 0.0, 0.0, 0.0, el1, lat_, lon_, h_ );
+    BOOST_CHECK_CLOSE_FRACTION( lat_, lat1, eps );
+    BOOST_CHECK_CLOSE_FRACTION( lon_, lon1, eps );
+//    BOOST_CHECK_CLOSE_FRACTION( h_, h1, 0.005 );
+}
+
+BOOST_AUTO_TEST_CASE( test_Abridged_1 )
+{
+    double lat_, lon_, h_;
+    double dX = SPML::Geodesy::SK42toWGS84_mol.Inverse().dX();
+    double dY = SPML::Geodesy::SK42toWGS84_mol.Inverse().dY();
+    double dZ = SPML::Geodesy::SK42toWGS84_mol.Inverse().dZ();
+    SPML::Geodesy::GEOtoGeoMolodenskyAbridged( el0, unitRange, unitAngle, lat, lon, h,
+        dX, dY, dZ, el1, lat_, lon_, h_ );
+    BOOST_CHECK_CLOSE_FRACTION( lat_, lat1, eps );
+    BOOST_CHECK_CLOSE_FRACTION( lon_, lon1, eps );
+//    BOOST_CHECK_CLOSE_FRACTION( h_, h1, 0.005 );
+}
+
+BOOST_AUTO_TEST_CASE( test_using_3_params_shift )
+{
+    double x1, y1, z1, x2, y2, z2, lat2, lon2, h2;
+    SPML::Geodesy::GEOtoECEF( el0, unitRange, unitAngle, lat, lon, h, x1, y1, z1 );
+    SPML::Geodesy::ECEFtoECEF_3params( SPML::Geodesy::TGeodeticDatum::GD_WGS84, x1, y1, z1,
+        SPML::Geodesy::TGeodeticDatum::GD_SK42, x2, y2, z2 );
+    SPML::Geodesy::ECEFtoGEO( el1, unitRange, unitAngle, x2, y2, z2, lat2, lon2, h2 );
+    BOOST_CHECK_CLOSE_FRACTION( lat2, lat1, eps );
+    BOOST_CHECK_CLOSE_FRACTION( lon2, lon1, eps );
+//    BOOST_CHECK_CLOSE_FRACTION( h2, h1, 0.005 );
+}
+
+BOOST_AUTO_TEST_CASE( test_using_7_params_shift_BursaWolf )
+{
+    double x1, y1, z1, x2, y2, z2, lat2, lon2, h2;
+    SPML::Geodesy::GEOtoECEF( el0, unitRange, unitAngle, lat, lon, h, x1, y1, z1 );
+    SPML::Geodesy::ECEFtoECEF_7params( SPML::Geodesy::TGeodeticDatum::GD_WGS84, x1, y1, z1,
+        SPML::Geodesy::TGeodeticDatum::GD_SK42, x2, y2, z2 );
+    SPML::Geodesy::ECEFtoGEO( el1, unitRange, unitAngle, x2, y2, z2, lat2, lon2, h2 );
+    BOOST_CHECK_CLOSE_FRACTION( lat2, lat1, eps );
+    BOOST_CHECK_CLOSE_FRACTION( lon2, lon1, eps );
+//    BOOST_CHECK_CLOSE_FRACTION( h2, h1, 0.005 );
 }
 
 BOOST_AUTO_TEST_SUITE_END()
-//----------------------------------------------------------------------------------------------------------------------
